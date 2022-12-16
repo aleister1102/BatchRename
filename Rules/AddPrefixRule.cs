@@ -13,7 +13,7 @@ namespace BatchRename.Rules
 
             builder.Append(Prefix);
             builder.Append(origin);
-            builder.Append(" ");
+            builder.Append(' ');
 
             string result = builder.ToString();
             return result;
@@ -24,10 +24,14 @@ namespace BatchRename.Rules
             return MemberwiseClone();
         }
 
-        public IRule Apply(string configs)
+        public void Apply(string[] configPairs)
         {
-            var rule = new AddPrefixRule() { Prefix = prefixValue };
-            return rule;
+            // Get config values
+            var prefixConfig = configPairs[0];
+            var prefix = prefixConfig.Split("=")[1];
+
+            // Apply the configs
+            Prefix = prefix;
         }
     }
 }

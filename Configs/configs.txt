@@ -1,2 +1,2 @@
-﻿AddPrefix:Prefix="DTO"
-ReplaceSpecialChars:SpecialChars=-_;Replacement= 
+﻿AddPrefix Prefix="DTO"
+ReplaceSpecialChars SpecialChars=-_;Replacement= 

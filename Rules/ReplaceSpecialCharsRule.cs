@@ -32,12 +32,18 @@ namespace BatchRename.Rules
             return MemberwiseClone();
         }
 
-        public IRule Apply(string configsLine)
+        public void Apply(string[] configPairs)
         {
-            var configs = configsLine.Split(':')[1];
+            // Get config values
+            var specialCharsConfig = configPairs[0];
+            var specialChars = specialCharsConfig.Split("=")[1];
 
-            var rule = new ReplaceSpecialCharsRule();
-            return rule;
+            var replacementConfig = configPairs[1];
+            var replacement = replacementConfig.Split("=")[1];
+
+            // Apply the configs
+            SpecialChars = specialChars;
+            Replacement = replacement;
         }
     }
 }

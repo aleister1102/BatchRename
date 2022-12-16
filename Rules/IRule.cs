@@ -12,6 +12,6 @@ namespace BatchRename.Rules
 
         public string Rename(string origin);
 
-        public IRule Apply(string configs);
+        public void Apply(string[] configPairs);
     }
 }

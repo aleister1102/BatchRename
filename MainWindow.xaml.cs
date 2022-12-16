@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 
@@ -17,7 +18,13 @@ namespace BatchRename
             InitializeComponent();
         }
 
-        private ObservableCollection<File> _sourceFiles = new ObservableCollection<File>();
+        private ObservableCollection<object> _sourceFiles = new();
+        private List<IRule> _activeRules = new();
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            RuleFactory.Configure();
+        }
 
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -32,35 +39,40 @@ namespace BatchRename
                     var fileInfo = new FileInfo(filePath);
                     var fileName = fileInfo.Name;
 
-                    _sourceFiles.Add(new File() { Path = filePath, Name = fileName });
+                    _sourceFiles.Add(new { Path = filePath, Name = fileName });
                 }
             }
 
             FileListView.ItemsSource = _sourceFiles;
-            PreviewListView.ItemsSource = _sourceFiles;
         }
 
         private void LoadPresetButton_Click(object sender, RoutedEventArgs e)
         {
-            //var screen = new OpenFileDialog();
+            var screen = new OpenFileDialog();
 
-            //if (screen.ShowDialog() == true)
-            //{
-            //    var configFilePath = screen.FileName;
-            //}
+            if (screen.ShowDialog() == false) return;
 
-            IRule rule1 = new AddPrefixRule() { Prefix = "DTO_" };
-            IRule rule2 = new ReplaceSpecialCharsRule() { SpecialChars = "_", Replacement = " " };
+            var configFilePaths = screen.FileNames;
 
-            var rules = new List<IRule>() { rule1, rule2 };
-
-            foreach (var file in _sourceFiles)
+            // Load config files
+            foreach (var configFilePath in configFilePaths)
             {
-                foreach (var rule in rules)
+                var configLines = File.ReadAllLines(configFilePath);
+
+                // Load rules
+                foreach (var configLine in configLines)
                 {
-                    file.Name = rule.Rename(file.Name);
+                    var rule = RuleFactory.CreateWith(configLine);
+                    _activeRules.Add(rule);
                 }
             }
+
+            // Apply configs to converter for renameing
+            var converter = (PreviewRenameConverter)FindResource("PreviewRenameConverter");
+            converter.rules = _activeRules;
+
+            // Refresh preview list
+            PreviewListView.ItemsSource = _sourceFiles;
         }
     }
 }

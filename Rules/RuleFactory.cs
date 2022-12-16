@@ -26,9 +26,19 @@ namespace BatchRename.Rules
             };
         }
 
-        public static IRule Create(string type)
+        public static IRule CreateWith(string configLine)
         {
-            var rule = (IRule)_prototypes[type].Clone();
+            // Split config string by ":" to get rule name and config pairs
+            var ruleConfig = configLine.Split(":");
+            var ruleName = ruleConfig[0];
+            var configPairs = ruleConfig[1].Split(";");
+
+            // Create a new rule with the rule name
+            var rule = (IRule)_prototypes[ruleName].Clone();
+
+            // Apply the config pairs to rule
+            rule.Apply(configPairs);
+
             return rule;
         }
     }
