@@ -2,8 +2,8 @@
 using Microsoft.Win32;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
+using System.Printing;
 using System.Windows;
 
 namespace BatchRename
@@ -32,47 +32,63 @@ namespace BatchRename
 
             if (browsingScreen.ShowDialog() == true)
             {
-                var filePaths = browsingScreen.FileNames;
+                LoadFilesFromBrowsingScreen(browsingScreen);
 
-                foreach (var filePath in filePaths)
-                {
-                    var fileInfo = new FileInfo(filePath);
-                    var fileName = fileInfo.Name;
-
-                    _sourceFiles.Add(new { Path = filePath, Name = fileName });
-                }
+                FileListView.ItemsSource = _sourceFiles;
             }
+        }
 
-            FileListView.ItemsSource = _sourceFiles;
+        private void LoadFilesFromBrowsingScreen(OpenFileDialog browsingScreen)
+        {
+            var filePaths = browsingScreen.FileNames;
+
+            foreach (var filePath in filePaths)
+            {
+                var fileInfo = new FileInfo(filePath);
+                var fileName = fileInfo.Name;
+
+                _sourceFiles.Add(new { Path = filePath, Name = fileName });
+            }
         }
 
         private void LoadPresetButton_Click(object sender, RoutedEventArgs e)
         {
-            var screen = new OpenFileDialog();
+            var browsingScreen = new OpenFileDialog() { Multiselect = true };
 
-            if (screen.ShowDialog() == false) return;
-
-            var configFilePaths = screen.FileNames;
-
-            // Load config files
-            foreach (var configFilePath in configFilePaths)
+            if (browsingScreen.ShowDialog() == true)
             {
-                var configLines = File.ReadAllLines(configFilePath);
+                LoadPresetsFromBrowsingScreen(browsingScreen);
 
-                // Load rules
-                foreach (var configLine in configLines)
-                {
-                    var rule = RuleFactory.CreateWith(configLine);
-                    _activeRules.Add(rule);
-                }
+                ApplyPresetsToConverter();
+
+                PreviewListView.ItemsSource = _sourceFiles;
             }
+        }
 
-            // Apply configs to converter for renameing
+        private void LoadPresetsFromBrowsingScreen(OpenFileDialog browsingScreen)
+        {
+            var presetFilePaths = browsingScreen.FileNames;
+
+            foreach (var presetFilePath in presetFilePaths)
+            {
+                var presetLines = File.ReadAllLines(presetFilePath);
+                AddRules(presetLines);
+            }
+        }
+
+        private void AddRules(string[] presetLines)
+        {
+            foreach (var presetLine in presetLines)
+            {
+                var rule = RuleFactory.CreateWith(presetLine);
+                _activeRules.Add(rule);
+            }
+        }
+
+        private void ApplyPresetsToConverter()
+        {
             var converter = (PreviewRenameConverter)FindResource("PreviewRenameConverter");
             converter.rules = _activeRules;
-
-            // Refresh preview list
-            PreviewListView.ItemsSource = _sourceFiles;
         }
     }
 }

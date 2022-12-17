@@ -24,13 +24,13 @@ namespace BatchRename.Rules
             return MemberwiseClone();
         }
 
-        public void Apply(string[] configPairs)
+        public void Apply(string[] presetPairs)
         {
-            // Get config values
-            var prefixConfig = configPairs[0];
-            var prefix = prefixConfig.Split("=")[1];
+            // Get preset values
+            var prefixPreset = presetPairs[0];
+            var prefix = prefixPreset.Split("=")[1];
 
-            // Apply the configs
+            // Apply the presets
             Prefix = prefix;
         }
     }

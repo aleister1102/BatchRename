@@ -15,7 +15,7 @@ namespace BatchRename.Rules
 
         public static void Configure()
         {
-            // TODO: config from DLL files
+            // TODO: preset from DLL files
             var rule1 = new AddPrefixRule();
             var rule2 = new ReplaceSpecialCharsRule();
 
@@ -26,20 +26,24 @@ namespace BatchRename.Rules
             };
         }
 
-        public static IRule CreateWith(string configLine)
+        public static IRule CreateWith(string presetLine)
         {
-            // Split config string by ":" to get rule name and config pairs
-            var ruleConfig = configLine.Split(":");
-            var ruleName = ruleConfig[0];
-            var configPairs = ruleConfig[1].Split(";");
+            (var ruleName, var presetPairs) = ParsePresetLine(presetLine);
 
-            // Create a new rule with the rule name
             var rule = (IRule)_prototypes[ruleName].Clone();
 
-            // Apply the config pairs to rule
-            rule.Apply(configPairs);
+            rule.Apply(presetPairs);
 
             return rule;
+        }
+
+        private static (string, string[]) ParsePresetLine(string presetLine)
+        {
+            var rulePreset = presetLine.Split(":");
+            var ruleName = rulePreset[0];
+            var presetPairs = rulePreset[1].Split(";");
+
+            return (ruleName, presetPairs);
         }
     }
 }

@@ -23,6 +23,7 @@ namespace BatchRename.Rules
                     builder.Append(c);
                 }
             }
+
             string result = builder.ToString();
             return result;
         }
@@ -32,16 +33,16 @@ namespace BatchRename.Rules
             return MemberwiseClone();
         }
 
-        public void Apply(string[] configPairs)
+        public void Apply(string[] presetPairs)
         {
-            // Get config values
-            var specialCharsConfig = configPairs[0];
-            var specialChars = specialCharsConfig.Split("=")[1];
+            // Get preset values
+            var specialCharsPreset = presetPairs[0];
+            var specialChars = specialCharsPreset.Split("=")[1];
 
-            var replacementConfig = configPairs[1];
-            var replacement = replacementConfig.Split("=")[1];
+            var replacementPreset = presetPairs[1];
+            var replacement = replacementPreset.Split("=")[1];
 
-            // Apply the configs
+            // Apply the presets
             SpecialChars = specialChars;
             Replacement = replacement;
         }

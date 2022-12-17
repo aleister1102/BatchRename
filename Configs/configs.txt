@@ -1,2 +1,0 @@
-﻿AddPrefix Prefix="DTO"
-ReplaceSpecialChars SpecialChars=-_;Replacement= 
