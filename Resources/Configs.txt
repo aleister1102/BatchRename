@@ -1,0 +1,5 @@
+﻿AddPrefix:Prefix=DTO
+AddSuffix:Suffix=Premium
+ReplaceSpecialChars:SpecialChars=-_;Replacement= 
+Trimming
+ToPascalCase

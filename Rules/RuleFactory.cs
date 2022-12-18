@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using RenamingRulePlugins;
+using BatchRenamePlugins;
 
 namespace BatchRename.Rules
 {
@@ -25,24 +25,24 @@ namespace BatchRename.Rules
             };
 
             // Add rules from plugins
-            var pluginInfos = GetPlugins();
-            LoadRulesFrom(pluginInfos);
+            var pluginPaths = GetPlugins();
+            LoadRulesFrom(pluginPaths);
         }
 
-        private FileInfo[] GetPlugins()
+        private string[] GetPlugins()
         {
             string exePath = Assembly.GetExecutingAssembly().Location;
             string? folder = Path.GetDirectoryName(exePath);
-            var pluginInfos = new DirectoryInfo(folder!).GetFiles("*.dll");
+            var pluginPaths = Directory.GetFiles(folder!, "*.dll");
 
-            return pluginInfos;
+            return pluginPaths;
         }
 
-        private void LoadRulesFrom(FileInfo[] pluginInfos)
+        private void LoadRulesFrom(string[] pluginPaths)
         {
-            foreach (var pluginInfo in pluginInfos)
+            foreach (var pluginPath in pluginPaths)
             {
-                Assembly assembly = LoadAssemblyFrom(pluginInfo);
+                Assembly assembly = LoadAssemblyFrom(pluginPath);
 
                 Type[] types = assembly.GetTypes();
 
@@ -50,10 +50,10 @@ namespace BatchRename.Rules
             }
         }
 
-        private Assembly LoadAssemblyFrom(FileInfo pluginInfo)
+        private Assembly LoadAssemblyFrom(string pluginPath)
         {
             var domain = AppDomain.CurrentDomain;
-            var assemblyName = AssemblyName.GetAssemblyName(pluginInfo.FullName);
+            var assemblyName = AssemblyName.GetAssemblyName(pluginPath);
             Assembly assembly = domain.Load(assemblyName);
 
             return assembly;
@@ -107,9 +107,18 @@ namespace BatchRename.Rules
         {
             var rulePreset = presetLine.Split(":");
             var ruleName = rulePreset[0];
-            var presetPairs = rulePreset[1].Split(";");
+            var presetPairs = ParsePresetPairs(rulePreset);
 
             return (ruleName, presetPairs);
+        }
+
+        private static string[] ParsePresetPairs(string[] rulePreset)
+        {
+            var presetPairs = rulePreset.Length > 1
+                ? rulePreset[1].Split(";")
+                : new string[] { "" };
+
+            return presetPairs;
         }
     }
 }

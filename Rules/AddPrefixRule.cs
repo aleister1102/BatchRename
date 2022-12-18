@@ -1,17 +1,14 @@
-﻿using System.Text;
-using RenamingRulePlugins;
+﻿using System.Diagnostics;
+using System.IO;
+using System.Text;
+using BatchRenamePlugins;
 
 namespace BatchRename.Rules
 {
-    public class AddPrefixRule : IRule
+    internal class AddPrefixRule : IRule
     {
-        public string Prefix { get; set; } = "";
+        public string Prefix { get; set; } = string.Empty;
         public string Name => "AddPrefix";
-
-        public object Clone()
-        {
-            return MemberwiseClone();
-        }
 
         public void Apply(string[] presetPairs)
         {
@@ -19,6 +16,11 @@ namespace BatchRename.Rules
             var prefix = prefixPreset.Split("=")[1];
 
             Prefix = prefix;
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
 
         public string Rename(string origin)

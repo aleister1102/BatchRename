@@ -12,8 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="RenamingRulePlugins">
-      <HintPath>..\RenamingRulePlugins\bin\Debug\net6.0-windows\RenamingRulePlugins.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\BatchRenamePlugins\BatchRenamePlugins.csproj" />
   </ItemGroup>
+
 </Project>

@@ -1,18 +1,13 @@
 ﻿using System.Text;
-using RenamingRulePlugins;
+using BatchRenamePlugins;
 
 namespace BatchRename.Rules
 {
-    public class ReplaceSpecialCharsRule : IRule
+    internal class ReplaceSpecialCharsRule : IRule
     {
         public string SpecialChars { get; set; } = "";
-        public string Replacement { get; set; } = "";
+        public string Replacement { get; set; } = string.Empty;
         public string Name => "ReplaceSpecialChars";
-
-        public object Clone()
-        {
-            return MemberwiseClone();
-        }
 
         public void Apply(string[] presetPairs)
         {
@@ -26,6 +21,12 @@ namespace BatchRename.Rules
             Replacement = replacement;
         }
 
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+
+        // TODO: use regex
         public string Rename(string origin)
         {
             var builder = new StringBuilder();

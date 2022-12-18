@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
-using RenamingRulePlugins;
+using BatchRenamePlugins;
 
 namespace BatchRename
 {
@@ -45,8 +45,7 @@ namespace BatchRename
 
             foreach (var filePath in filePaths)
             {
-                var fileInfo = new FileInfo(filePath);
-                var fileName = fileInfo.Name;
+                var fileName = Path.GetFileName(filePath);
 
                 _sourceFiles.Add(new { Path = filePath, Name = fileName });
             }
