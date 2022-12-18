@@ -20,5 +20,9 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="rules\" />
+  </ItemGroup>
+
 
 </Project>

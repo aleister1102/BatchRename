@@ -1,5 +1,4 @@
-﻿using BatchRename.Rules;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;

@@ -4,7 +4,7 @@ using System.IO;
 using System.Reflection;
 using BatchRenamePlugins;
 
-namespace BatchRename.Rules
+namespace BatchRename
 {
     public class RuleFactory
     {
@@ -14,17 +14,6 @@ namespace BatchRename.Rules
 
         private RuleFactory()
         {
-            // Add static rules
-            var rule1 = new AddPrefixRule();
-            var rule2 = new ReplaceSpecialCharsRule();
-
-            _prototypes = new Dictionary<string, IRule>()
-            {
-                {rule1.Name, rule1 },
-                {rule2.Name, rule2 }
-            };
-
-            // Add rules from plugins
             var pluginPaths = GetPlugins();
             LoadRulesFrom(pluginPaths);
         }
