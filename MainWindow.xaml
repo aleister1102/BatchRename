@@ -6,38 +6,62 @@
         xmlns:local="clr-namespace:BatchRename"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800"
-        Loaded="Window_Loaded">
+        Loaded="Window_Loaded" WindowStartupLocation="CenterScreen">
     <Window.Resources>
-        <local:PreviewRenameConverter x:Key="PreviewRenameConverter" />
+        <local:PathToNameConverter x:Key="PathToNameConverter" />
     </Window.Resources>
-    <Canvas>
-        <Button Name="BrowseButton"
-                Width="200" Height="50"
-                Content="Browse files ..." Click="BrowseButton_Click"
-                Canvas.Left="180" Canvas.Top="14" HorizontalAlignment="Center" VerticalAlignment="Top" />
-        <ListView
-            Name="FileListView"
-            Width="200" Height="300"
-            Canvas.Left="180" Canvas.Top="99" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding Name}"></TextBlock>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-        <Button Name="LoadPresetButton"
-                Width="200" Height="50"
-                Content="Browse preset ..." Click="LoadPresetButton_Click"
-                Canvas.Left="420" Canvas.Top="14" HorizontalAlignment="Center" VerticalAlignment="Top" />
-        <ListView
-            Name="PreviewListView"
-            Width="200" Height="300"
-            Canvas.Left="420" Canvas.Top="99" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding Name, Converter={StaticResource PreviewRenameConverter}}"></TextBlock>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-    </Canvas>
+    <DockPanel>
+        <DockPanel Name="ConfigPanel" LastChildFill="True">
+            <Button Name="LoadPresetButton"
+                Width="220" Height="50" Margin="0 10"
+                Content="Load preset ..." DockPanel.Dock="Top" Click="LoadPresetButton_Click" />
+
+            <ComboBox Name="PresetComboBox" Width="220" Margin="0 10" DockPanel.Dock="Top"
+                  SelectionChanged="PresetComboBox_SelectionChanged">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Path=., Converter={StaticResource PathToNameConverter}}"></TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <!-- TODO: Create check box for each rules -->
+            <ListView Name="RuleListView" Width="220" Height="300" Margin="0 10" DockPanel.Dock="Bottom">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <!-- TODO: find a way to import UI from plugins and load into rule's configuration -->
+                        <Expander Name="RuleExpander" Background="#0078d4" Foreground="#fff"
+                                HorizontalAlignment="Center" Header="{Binding .}"
+                                ExpandDirection="Down" IsExpanded="False" Width="180">
+                            <TextBlock Text="This is rule's configuration" Background="#fff" Foreground="#000" />
+                        </Expander>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </DockPanel>
+
+        <DockPanel Width="500">
+            <Button Name="BrowseButton"
+                Width="200" Height="50" Margin="0 10"
+                Content="Browse files ..." DockPanel.Dock="Top" Click="BrowseButton_Click" HorizontalAlignment="Left" />
+
+            <StackPanel Orientation="Horizontal">
+                <ListView Name="FileListView" Width="200" Height="300" VerticalAlignment="Top">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}"></TextBlock>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <ListView Name="PreviewListView" Width="200" Height="300" VerticalAlignment="Top">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}"></TextBlock>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
+        </DockPanel>
+    </DockPanel>
 </Window>

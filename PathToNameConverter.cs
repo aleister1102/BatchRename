@@ -1,26 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Data;
-using BatchRenamePlugins;
+using System.Windows.Navigation;
 
 namespace BatchRename
 {
-    public class PreviewRenameConverter : IValueConverter
+    internal class PathToNameConverter : IValueConverter
     {
-        public List<IRule> rules = new List<IRule>();
-
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            string origin = (string)value;
-            string previewName = origin;
-
-            foreach (var rule in rules)
-            {
-                previewName = rule.Rename(previewName);
-            }
-
-            return previewName;
+            string path = (string)value;
+            string name = Path.GetFileName(path);
+            return name;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

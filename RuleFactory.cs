@@ -14,11 +14,10 @@ namespace BatchRename
 
         private RuleFactory()
         {
-            var pluginPaths = GetPlugins();
-            LoadRulesFrom(pluginPaths);
+            LoadPlugins();
         }
 
-        private string[] GetPlugins()
+        private static string[] GetPlugins()
         {
             string exePath = Assembly.GetExecutingAssembly().Location;
             string? folder = Path.GetDirectoryName(exePath);
@@ -27,7 +26,7 @@ namespace BatchRename
             return pluginPaths;
         }
 
-        private void LoadRulesFrom(string[] pluginPaths)
+        private static void LoadRulesFrom(string[] pluginPaths)
         {
             foreach (var pluginPath in pluginPaths)
             {
@@ -39,7 +38,7 @@ namespace BatchRename
             }
         }
 
-        private Assembly LoadAssemblyFrom(string pluginPath)
+        private static Assembly LoadAssemblyFrom(string pluginPath)
         {
             var domain = AppDomain.CurrentDomain;
             var assemblyName = AssemblyName.GetAssemblyName(pluginPath);
@@ -48,7 +47,7 @@ namespace BatchRename
             return assembly;
         }
 
-        private void AddRuleToPrototypes(Type[] ruleTypes)
+        private static void AddRuleToPrototypes(Type[] ruleTypes)
         {
             foreach (var ruleType in ruleTypes)
             {
@@ -62,7 +61,7 @@ namespace BatchRename
             }
         }
 
-        private (string, IRule) CreateRuleWith(Type ruleType)
+        private static (string, IRule) CreateRuleWith(Type ruleType)
         {
             string ruleTypeName = ruleType.Name;
             string ruleName = ruleTypeName.Replace("Rule", "");
@@ -87,7 +86,7 @@ namespace BatchRename
 
             var rule = (IRule)_prototypes[ruleName].Clone();
 
-            rule.Apply(presetPairs);
+            rule.Config(presetPairs);
 
             return rule;
         }
@@ -108,6 +107,17 @@ namespace BatchRename
                 : new string[] { "" };
 
             return presetPairs;
+        }
+
+        public static Dictionary<string, IRule> GetPrototypes()
+        {
+            return _prototypes;
+        }
+
+        public static void LoadPlugins()
+        {
+            var pluginPaths = GetPlugins();
+            LoadRulesFrom(pluginPaths);
         }
     }
 }
