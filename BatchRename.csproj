@@ -11,4 +11,9 @@
     <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="RenamingRulePlugins">
+      <HintPath>..\RenamingRulePlugins\bin\Debug\net6.0-windows\RenamingRulePlugins.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

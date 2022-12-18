@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using RenamingRulePlugins;
 
 namespace BatchRename.Rules
 {
@@ -7,6 +8,23 @@ namespace BatchRename.Rules
         public string SpecialChars { get; set; } = "";
         public string Replacement { get; set; } = "";
         public string Name => "ReplaceSpecialChars";
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+
+        public void Apply(string[] presetPairs)
+        {
+            var specialCharsPreset = presetPairs[0];
+            var specialChars = specialCharsPreset.Split("=")[1];
+
+            var replacementPreset = presetPairs[1];
+            var replacement = replacementPreset.Split("=")[1];
+
+            SpecialChars = specialChars;
+            Replacement = replacement;
+        }
 
         public string Rename(string origin)
         {
@@ -26,25 +44,6 @@ namespace BatchRename.Rules
 
             string result = builder.ToString();
             return result;
-        }
-
-        public object Clone()
-        {
-            return MemberwiseClone();
-        }
-
-        public void Apply(string[] presetPairs)
-        {
-            // Get preset values
-            var specialCharsPreset = presetPairs[0];
-            var specialChars = specialCharsPreset.Split("=")[1];
-
-            var replacementPreset = presetPairs[1];
-            var replacement = replacementPreset.Split("=")[1];
-
-            // Apply the presets
-            SpecialChars = specialChars;
-            Replacement = replacement;
         }
     }
 }

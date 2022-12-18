@@ -3,8 +3,8 @@ using Microsoft.Win32;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Printing;
 using System.Windows;
+using RenamingRulePlugins;
 
 namespace BatchRename
 {
@@ -19,11 +19,12 @@ namespace BatchRename
         }
 
         private ObservableCollection<object> _sourceFiles = new();
+
         private List<IRule> _activeRules = new();
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            RuleFactory.Configure();
+            RuleFactory.Instance();
         }
 
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
