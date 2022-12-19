@@ -15,7 +15,7 @@ namespace BatchRename
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             string path = (string)value;
-            string name = Path.GetFileName(path);
+            string name = Path.GetFileNameWithoutExtension(path);
             return name;
         }
 

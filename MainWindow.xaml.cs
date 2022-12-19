@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -10,29 +11,53 @@ namespace BatchRename
 {
     public static class Utils
     {
-        public static BindingList<File> Clone(this BindingList<File> files)
+        public static ObservableCollection<File> Clone(this ObservableCollection<File> files)
         {
-            var result = new BindingList<File>();
+            var result = new ObservableCollection<File>();
+
             foreach (var file in files)
             {
                 var clone = (File)file.Clone();
                 result.Add(clone);
             }
+
+            return result;
+        }
+
+        public static ObservableCollection<IRule> Clone(this ObservableCollection<IRule> files)
+        {
+            var result = new ObservableCollection<IRule>();
+
+            foreach (var file in files)
+            {
+                var clone = (IRule)file.Clone();
+                result.Add(clone);
+    }
+
             return result;
         }
     }
 
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
+    public class ViewModel
+    {
+        public ObservableCollection<string> Presets { get; set; } = new();
+
+        public ObservableCollection<BaseRule> Rules { get; set; } = new();
+
+        public ObservableCollection<File> SourceFiles { get; set; } = new();
+
+        public ObservableCollection<File> PreviewFiles { get; set; } = new();
+    }
+
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
+            RuleFactory.Instance();
         }
 
-        private BindingList<File> _sourceFiles = new();
+        private readonly ViewModel _viewModel = new();
 
         private BindingList<File> _previewFiles = new();
 
@@ -43,57 +68,69 @@ namespace BatchRename
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            RuleFactory.Instance();
+            _viewModel.Presets.Add("no presets");
+            PresetComboBox.ItemsSource = _viewModel.Presets;
+            PresetComboBox.SelectedIndex = 0;
 
             RuleListView.ItemsSource = RuleFactory.GetPrototypes().Keys;
 
-            PresetComboBox.ItemsSource = _presets;
+            RuleListView.ItemsSource = _viewModel.Rules;
 
-            FileListView.ItemsSource = _sourceFiles;
+            FileListView.ItemsSource = _viewModel.SourceFiles;
 
-            PreviewListView.ItemsSource = _previewFiles;
+            PreviewListView.ItemsSource = _viewModel.PreviewFiles;
         }
 
-        private void LoadPresetButton_Click(object sender, RoutedEventArgs e)
+        private void BrowsePresets_Click(object sender, RoutedEventArgs e)
         {
             var browsingScreen = new OpenFileDialog() { Multiselect = true };
 
             if (browsingScreen.ShowDialog() == true)
             {
-                LoadPresetsFrom(browsingScreen);
+                GetPresetsFrom(browsingScreen);
             }
         }
 
-        private void LoadPresetsFrom(OpenFileDialog browsingScreen)
+        private void GetPresetsFrom(OpenFileDialog browsingScreen)
         {
             var presetPaths = browsingScreen.FileNames;
 
             foreach (var presetPath in presetPaths)
             {
-                if (_presets.Contains(presetPath) is false)
+                if (_viewModel.Presets.Contains(presetPath) is false)
                 {
-                    _presets.Add(presetPath);
+                    _viewModel.Presets.Add(presetPath);
                 }
             }
         }
 
         private void PresetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            ClearOldRules();
+
             LoadSelectedPresets();
-            ApplyPresets();
+
+            ApplyRules();
         }
 
         private void LoadSelectedPresets()
         {
             var presetPath = (string)PresetComboBox.SelectedItem;
+
+            if (System.IO.File.Exists(presetPath))
+            {
             var presetLines = System.IO.File.ReadAllLines(presetPath);
-            AddRules(presetLines);
+                UpdateRules(presetLines);
+        }
         }
 
-        private void AddRules(string[] presetLines)
+        private void ClearOldRules()
         {
-            _activeRules = new BindingList<IRule>();
+            _viewModel.Rules = new();
+        }
 
+        private void UpdateRules(string[] presetLines)
+        {
             foreach (var presetLine in presetLines)
             {
                 var rule = RuleFactory.CreateWith(presetLine);
@@ -104,21 +141,23 @@ namespace BatchRename
             }
         }
 
-        private void ApplyPresets()
+            private void ApplyRules()
         {
-            // TODO: try to change each items in _previewFiles instead of create the clone
-            _previewFiles = _sourceFiles.Clone();
+                _viewModel.PreviewFiles = _viewModel.SourceFiles.Clone();
 
-            foreach (var previewFile in _previewFiles)
+                foreach (var previewFile in _viewModel.PreviewFiles)
             {
-                foreach (var rule in _activeRules)
+                    foreach (var rule in _viewModel.Rules)
+                    {
+                        if (rule.IsActive())
                 {
                     string previewName = rule.Rename(previewFile.Name);
                     previewFile.Name = previewName;
                 }
             }
+                }
 
-            PreviewListView.ItemsSource = _previewFiles;
+                PreviewListView.ItemsSource = _viewModel.PreviewFiles;
         }
 
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
@@ -129,7 +168,7 @@ namespace BatchRename
             {
                 LoadFilesFrom(browsingScreen);
 
-                ApplyPresets();
+                    ApplyRules();
             }
         }
 
@@ -141,8 +180,38 @@ namespace BatchRename
             {
                 var fileName = Path.GetFileName(filePath);
 
-                _sourceFiles.Add(new File() { Path = filePath, Name = fileName });
+                    _viewModel.SourceFiles.Add(new File() { Path = filePath, Name = fileName });
+                }
             }
+
+            private void CheckBox_Checked(object sender, RoutedEventArgs e)
+            {
+                //string ruleName = (string)((CheckBox)sender).Content;
+
+                //foreach (var ruleInfo in _viewModel.Rules)
+                //{
+                //    if (ruleInfo.Rule.Name == ruleName)
+                //    {
+                //        ruleInfo.Status = RuleManager.Active;
+                //    }
+                //}
+
+                //ApplyRules();
+            }
+
+            private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
+            {
+                //string ruleName = (string)((CheckBox)sender).Content;
+
+                //foreach (var ruleInfo in _viewModel.Rules)
+                //{
+                //    if (ruleInfo.Rule.Name == ruleName)
+                //    {
+                //        ruleInfo.Status = RuleManager.Unactive;
+                //    }
+                //}
+
+                //ApplyRules();
         }
     }
 }

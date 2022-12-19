@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BatchRename"
         mc:Ignorable="d"
@@ -12,9 +13,9 @@
     </Window.Resources>
     <DockPanel>
         <DockPanel Name="ConfigPanel" LastChildFill="True">
-            <Button Name="LoadPresetButton"
+            <Button Name="GetPresets"
                 Width="220" Height="50" Margin="0 10"
-                Content="Load preset ..." DockPanel.Dock="Top" Click="LoadPresetButton_Click" />
+                Content="Load preset ..." DockPanel.Dock="Top" Click="BrowsePresets_Click" />
 
             <ComboBox Name="PresetComboBox" Width="220" Margin="0 10" DockPanel.Dock="Top"
                   SelectionChanged="PresetComboBox_SelectionChanged">
