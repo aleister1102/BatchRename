@@ -37,7 +37,7 @@ namespace BatchRename
     {
         public ObservableCollection<string> Presets { get; set; } = new();
 
-        public ObservableCollection<IRule> CurrentRules { get; set; } = new();
+        public ObservableCollection<IRule> AvailableRules { get; set; } = new();
         public ObservableCollection<IRule> ActiveRules { get; set; } = new();
 
         public ObservableCollection<File> OriginalFiles { get; set; } = new();
@@ -59,14 +59,14 @@ namespace BatchRename
             _viewModel.Presets.Add("no presets");
             PresetComboBox.ItemsSource = _viewModel.Presets;
 
-            _viewModel.CurrentRules = LoadDefaultRulesFromPrototypes();
-            RuleListView.ItemsSource = _viewModel.CurrentRules;
+            _viewModel.AvailableRules = LoadDefaultRulesFromPrototypes();
+            AvailableRulesListView.ItemsSource = _viewModel.AvailableRules;
 
-            ActiveRuleListView.ItemsSource = _viewModel.ActiveRules;
+            ActiveRulesListView.ItemsSource = _viewModel.ActiveRules;
 
-            FileListView.ItemsSource = _viewModel.OriginalFiles;
+            OriginalFilesListView.ItemsSource = _viewModel.OriginalFiles;
 
-            PreviewListView.ItemsSource = _viewModel.PreviewFiles;
+            PreviewFilesListView.ItemsSource = _viewModel.PreviewFiles;
         }
 
         private ObservableCollection<IRule> LoadDefaultRulesFromPrototypes()
@@ -75,7 +75,7 @@ namespace BatchRename
             return result;
         }
 
-        private void BrowsePresets_Click(object sender, RoutedEventArgs e)
+        private void BrowsePresetsButton_Click(object sender, RoutedEventArgs e)
         {
             var browsingScreen = new OpenFileDialog() { Multiselect = true };
 
@@ -116,7 +116,7 @@ namespace BatchRename
 
         private void ResetDefaultRules()
         {
-            _viewModel.CurrentRules = LoadDefaultRulesFromPrototypes();
+            _viewModel.AvailableRules = LoadDefaultRulesFromPrototypes();
         }
 
         private void LoadSelectedPresets()
@@ -151,11 +151,11 @@ namespace BatchRename
 
         private void UpdateDefaultRule(IRule newRule)
         {
-            for (int i = _viewModel.CurrentRules.Count - 1; i >= 0; i--)
+            for (int i = _viewModel.AvailableRules.Count - 1; i >= 0; i--)
             {
-                if (_viewModel.CurrentRules[i].Name == newRule.Name)
+                if (_viewModel.AvailableRules[i].Name == newRule.Name)
                 {
-                    _viewModel.CurrentRules[i] = (IRule)newRule.Clone();
+                    _viewModel.AvailableRules[i] = (IRule)newRule.Clone();
                 }
             }
         }
@@ -175,10 +175,10 @@ namespace BatchRename
                 }
             }
 
-            PreviewListView.ItemsSource = _viewModel.PreviewFiles;
+            PreviewFilesListView.ItemsSource = _viewModel.PreviewFiles;
         }
 
-        private void BrowseButton_Click(object sender, RoutedEventArgs e)
+        private void BrowseFilesButton_Click(object sender, RoutedEventArgs e)
         {
             var browsingScreen = new OpenFileDialog { Multiselect = true };
 
@@ -223,12 +223,12 @@ namespace BatchRename
             var senderButton = (Button)sender;
             var currentRule = (IRule)senderButton.DataContext;
 
-            for (int i = _viewModel.CurrentRules.Count - 1; i >= 0; i--)
+            for (int i = _viewModel.AvailableRules.Count - 1; i >= 0; i--)
             {
-                if (_viewModel.CurrentRules[i].Name == currentRule.Name &&
+                if (_viewModel.AvailableRules[i].Name == currentRule.Name &&
                     _viewModel.ActiveRules.Any(activeRule => activeRule.Name == currentRule.Name) is false)
                 {
-                    var ruleToBeActivated = (IRule)_viewModel.CurrentRules[i].Clone();
+                    var ruleToBeActivated = (IRule)_viewModel.AvailableRules[i].Clone();
 
                     _viewModel.ActiveRules.Add(ruleToBeActivated);
                     ApplyActiveRules();

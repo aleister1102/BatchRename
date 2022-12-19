@@ -5,32 +5,42 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BatchRename"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="1000"
+        Title="MainWindow" Height="960" Width="1440"
         Loaded="Window_Loaded" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <local:PathToNameConverter x:Key="PathToNameConverter" />
 
         <Style x:Key="BrowseButton">
-            <Setter Property="Button.Width" Value="220" />
-            <Setter Property="Button.Height" Value="50" />
-            <Setter Property="Button.Margin" Value="0 10" />
+            <Setter Property="Button.Width" Value="148" />
+            <Setter Property="Button.Height" Value="30" />
+            <Setter Property="Button.Margin" Value="20 0" />
             <Setter Property="Button.Background" Value="#7de5ed" />
         </Style>
 
         <Style TargetType="ComboBox">
-            <Setter Property="Width" Value="220" />
-            <Setter Property="Margin" Value="0 10" />
+            <Setter Property="Width" Value="140" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Margin" Value="20 0" />
+            <Setter Property="Margin" Value="20 0" />
         </Style>
 
-        <Style TargetType="ListView">
-            <Setter Property="Width" Value="240" />
-            <Setter Property="Height" Value="280" />
-            <Setter Property="Margin" Value="0 10" />
+        <Style x:Key="ListName">
+            <Setter Property="TextBlock.Margin" Value="20 0" />
+        </Style>
+
+        <Style x:Key="ListButton">
+            <Setter Property="Button.Width" Value="100" />
+        </Style>
+
+        <Style x:Key="RuleListView">
+            <Setter Property="ListView.Width" Value="240" />
+            <Setter Property="ListView.Height" Value="400" />
+            <Setter Property="ListView.Margin" Value="20 0" />
         </Style>
 
         <Style x:Key="RuleGrid">
+            <Setter Property="Grid.Width" Value="220" />
             <Setter Property="Grid.Background" Value="#4cc2ff" />
-            <Setter Property="Grid.Width" Value="210" />
         </Style>
 
         <Style x:Key="RuleButton">
@@ -40,86 +50,113 @@
         </Style>
 
         <Style x:Key="RuleName">
-            <Setter Property="TextBlock.Margin" Value="10 0" />
             <Setter Property="TextBlock.Foreground" Value="#fff" />
-            <Setter Property="TextBlock.VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="FileListView">
+            <Setter Property="ListView.Width" Value="300" />
+            <Setter Property="ListView.Height" Value="540" />
         </Style>
     </Window.Resources>
 
-    <StackPanel Orientation="Horizontal">
-        <DockPanel Name="ConfigPanel">
-            <Button Name="BrowsePresets"
-                    Content="Load preset ..." DockPanel.Dock="Top" Click="BrowsePresets_Click"
-                    Style="{StaticResource BrowseButton}" />
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="560" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-            <ComboBox Name="PresetComboBox" DockPanel.Dock="Top"
-                  SelectionChanged="PresetComboBox_SelectionChanged">
+        <StackPanel Name="ToolbarStackPanel" Orientation="Horizontal" Grid.Row="0" Grid.ColumnSpan="2">
+            <Button Name="BrowseFilesButton"
+                    Content="Browse files ..." Click="BrowseFilesButton_Click"
+                    Style="{StaticResource BrowseButton}" />
+            <Button Name="BrowsePresetsButton"
+                    Content="Load preset ..." DockPanel.Dock="Top" Click="BrowsePresetsButton_Click"
+                    Style="{StaticResource BrowseButton}" />
+            <ComboBox Name="PresetComboBox" SelectionChanged="PresetComboBox_SelectionChanged">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Path=., Converter={StaticResource PathToNameConverter}}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
+        </StackPanel>
 
-            <StackPanel>
-                <ListView Name="RuleListView">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid DataContext="{Binding}" Style="{StaticResource RuleGrid}">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="180" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="20" />
-                                </Grid.RowDefinitions>
+        <StackPanel Name="RulePanel" Grid.Row="1" Grid.Column="0">
+            <Grid Name="RuleConfig"></Grid>
+            <StackPanel Orientation="Horizontal">
+                <StackPanel Name="AvailableRulesPanel">
+                    <StackPanel Orientation="Horizontal" Width="240">
+                        <TextBlock Style="{StaticResource ListName}">Available rules</TextBlock>
+                        <Button Name="ActivateAllButton" Style="{StaticResource ListButton}">Activate all</Button>
+                    </StackPanel>
 
-                                <TextBlock Name="RuleTextBlock" Text="{Binding Name}" Grid.Column="0" Style="{StaticResource RuleName}" />
-                                <Button Name="ActivateButton" Content="+"  Grid.Column="1" Click="ActivateButton_Click" Style="{StaticResource RuleButton}" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                    <ListView Name="AvailableRulesListView" Style="{StaticResource RuleListView}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid DataContext="{Binding}" Style="{StaticResource RuleGrid}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="180" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="20" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Name="RuleTextBlock" Text="{Binding Name}" Grid.Column="0" Style="{StaticResource RuleName}" />
+                                    <Button Content="+"  Grid.Column="1" Click="ActivateButton_Click" Style="{StaticResource RuleButton}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
+
+                <StackPanel Name="ActiveRulesPanel">
+                    <StackPanel Orientation="Horizontal" Width="240">
+                        <TextBlock Style="{StaticResource ListName}">Active rules</TextBlock>
+                        <Button Name="DeactivateAllButton" Style="{StaticResource ListButton}">Deactivate all</Button>
+                    </StackPanel>
+
+                    <ListView Name="ActiveRulesListView" Style="{StaticResource RuleListView}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid DataContext="{Binding}" Style="{StaticResource RuleGrid}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="180" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="20" />
+                                    </Grid.RowDefinitions>
+
+                                    <Button Name="DeactivateButton" Content="-" Grid.Column="0" Click="DeactivateButton_Click" Style="{StaticResource RuleButton}" />
+                                    <TextBlock Text="{Binding Name}" Grid.Column="1" Style="{StaticResource RuleName}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
             </StackPanel>
+        </StackPanel>
 
+        <StackPanel Name="FilePanel" Orientation="Horizontal" Grid.Row="1" Grid.Column="1" VerticalAlignment="Top">
             <StackPanel>
-                <ListView Name="ActiveRuleListView">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Background="#4cc2ff" Width="210" DataContext="{Binding}">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="180" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="20" />
-                                </Grid.RowDefinitions>
-
-                                <Button Name="DeactivateButton" Content="-" Grid.Column="0" Click="DeactivateButton_Click" Style="{StaticResource RuleButton}" />
-                                <TextBlock Name="RuleTextBlock" Text="{Binding Name}" Grid.Column="1" Style="{StaticResource RuleName}" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </StackPanel>
-        </DockPanel>
-
-        <StackPanel Name="FilePanel"
-                    Margin="20 0">
-            <Button Name="BrowseButton"
-                    Content="Browse files ..." Click="BrowseButton_Click"
-                    Style="{StaticResource BrowseButton}" />
-
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
-                <ListView Name="FileListView">
+                <TextBlock>Original files</TextBlock>
+                <ListView Name="OriginalFilesListView" Style="{StaticResource FileListView}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Name}"></TextBlock>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
+            </StackPanel>
 
-                <ListView Name="PreviewListView">
+            <StackPanel>
+                <TextBlock>Preview files</TextBlock>
+                <ListView Name="PreviewFilesListView" Style="{StaticResource FileListView}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Name}"></TextBlock>
@@ -128,5 +165,5 @@
                 </ListView>
             </StackPanel>
         </StackPanel>
-    </StackPanel>
+    </Grid>
 </Window>
