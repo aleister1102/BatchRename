@@ -75,7 +75,6 @@
                                     <RowDefinition Height="20" />
                                 </Grid.RowDefinitions>
 
-                                <Button Name="DeactivateButton" Content="-" Grid.Column="0" Click="DeactivateButton_Click" Style="{StaticResource RuleButton}" />
                                 <TextBlock Name="RuleTextBlock" Text="{Binding Name}" Grid.Column="1" Style="{StaticResource RuleName}" />
                                 <Button Name="ActivateButton" Content="+"  Grid.Column="2" Click="ActivateButton_Click" Style="{StaticResource RuleButton}" />
                             </Grid>
@@ -100,7 +99,6 @@
 
                                 <Button Name="DeactivateButton" Content="-" Grid.Column="0" Click="DeactivateButton_Click" Style="{StaticResource RuleButton}" />
                                 <TextBlock Name="RuleTextBlock" Text="{Binding Name}" Grid.Column="1" Style="{StaticResource RuleName}" />
-                                <Button Name="ActivateButton" Content="+"  Grid.Column="2" Click="ActivateButton_Click" Style="{StaticResource RuleButton}" />
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>

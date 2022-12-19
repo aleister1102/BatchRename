@@ -17,6 +17,12 @@ namespace BatchRename
             LoadPlugins();
         }
 
+        public static void LoadPlugins()
+        {
+            var pluginPaths = GetPlugins();
+            LoadRulesFrom(pluginPaths);
+        }
+
         private static string[] GetPlugins()
         {
             string exePath = Assembly.GetExecutingAssembly().Location;
@@ -112,12 +118,6 @@ namespace BatchRename
         public static Dictionary<string, IRule> GetPrototypes()
         {
             return _prototypes;
-        }
-
-        public static void LoadPlugins()
-        {
-            var pluginPaths = GetPlugins();
-            LoadRulesFrom(pluginPaths);
         }
     }
 }

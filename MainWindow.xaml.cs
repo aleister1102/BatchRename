@@ -1,11 +1,19 @@
 ﻿using BatchRenamePlugins;
 using Microsoft.Win32;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Mail;
+using System.Security.RightsManagement;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace BatchRename
 {
@@ -23,29 +31,16 @@ namespace BatchRename
 
             return result;
         }
-
-        public static ObservableCollection<IRule> Clone(this ObservableCollection<IRule> files)
-        {
-            var result = new ObservableCollection<IRule>();
-
-            foreach (var file in files)
-            {
-                var clone = (IRule)file.Clone();
-                result.Add(clone);
-    }
-
-            return result;
-        }
     }
 
     public class ViewModel
     {
         public ObservableCollection<string> Presets { get; set; } = new();
 
-        public ObservableCollection<BaseRule> Rules { get; set; } = new();
+        public ObservableCollection<IRule> DefaultRules { get; set; } = new();
+        public ObservableCollection<IRule> ActiveRules { get; set; } = new();
 
         public ObservableCollection<File> SourceFiles { get; set; } = new();
-
         public ObservableCollection<File> PreviewFiles { get; set; } = new();
     }
 
@@ -59,26 +54,25 @@ namespace BatchRename
 
         private readonly ViewModel _viewModel = new();
 
-        private BindingList<File> _previewFiles = new();
-
-        private BindingList<IRule> _activeRules = new();
-
-        // TODO: create none preset option
-        private BindingList<string> _presets = new();
-
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             _viewModel.Presets.Add("no presets");
             PresetComboBox.ItemsSource = _viewModel.Presets;
-            PresetComboBox.SelectedIndex = 0;
 
-            RuleListView.ItemsSource = RuleFactory.GetPrototypes().Keys;
+            _viewModel.DefaultRules = LoadDefaultRulesFromPrototypes();
+            RuleListView.ItemsSource = _viewModel.DefaultRules;
 
-            RuleListView.ItemsSource = _viewModel.Rules;
+            ActiveRuleListView.ItemsSource = _viewModel.ActiveRules;
 
             FileListView.ItemsSource = _viewModel.SourceFiles;
 
             PreviewListView.ItemsSource = _viewModel.PreviewFiles;
+        }
+
+        private ObservableCollection<IRule> LoadDefaultRulesFromPrototypes()
+        {
+            var result = new ObservableCollection<IRule>(RuleFactory.GetPrototypes().Values.ToList());
+            return result;
         }
 
         private void BrowsePresets_Click(object sender, RoutedEventArgs e)
@@ -106,11 +100,23 @@ namespace BatchRename
 
         private void PresetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ClearOldRules();
+            ResetActiveRules();
+
+            ResetDefaultRules();
 
             LoadSelectedPresets();
 
-            ApplyRules();
+            ApplyActiveRules();
+        }
+
+        private void ResetActiveRules()
+        {
+            _viewModel.ActiveRules.Clear();
+        }
+
+        private void ResetDefaultRules()
+        {
+            _viewModel.DefaultRules = LoadDefaultRulesFromPrototypes();
         }
 
         private void LoadSelectedPresets()
@@ -119,45 +125,55 @@ namespace BatchRename
 
             if (System.IO.File.Exists(presetPath))
             {
-            var presetLines = System.IO.File.ReadAllLines(presetPath);
+                var presetLines = System.IO.File.ReadAllLines(presetPath);
                 UpdateRules(presetLines);
-        }
-        }
-
-        private void ClearOldRules()
-        {
-            _viewModel.Rules = new();
+            }
         }
 
         private void UpdateRules(string[] presetLines)
         {
             foreach (var presetLine in presetLines)
             {
-                var rule = RuleFactory.CreateWith(presetLine);
-                if (_activeRules.Contains(rule) is false)
+                var newRule = RuleFactory.CreateWith(presetLine);
+
+                UpdateActiveRule(newRule);
+                UpdateDefaultRule(newRule);
+            }
+        }
+
+        private void UpdateActiveRule(IRule newRule)
+        {
+            if (_viewModel.ActiveRules.Contains(newRule) is false)
+            {
+                _viewModel.ActiveRules.Add(newRule);
+            }
+        }
+
+        private void UpdateDefaultRule(IRule newRule)
+        {
+            for (int i = _viewModel.DefaultRules.Count - 1; i >= 0; i--)
+            {
+                if (_viewModel.DefaultRules[i].Name == newRule.Name)
                 {
-                    _activeRules.Add(rule);
+                    _viewModel.DefaultRules[i] = (IRule)newRule.Clone();
                 }
             }
         }
 
-            private void ApplyRules()
+        private void ApplyActiveRules()
         {
-                _viewModel.PreviewFiles = _viewModel.SourceFiles.Clone();
+            _viewModel.PreviewFiles = _viewModel.SourceFiles.Clone();
 
-                foreach (var previewFile in _viewModel.PreviewFiles)
+            foreach (var previewFile in _viewModel.PreviewFiles)
             {
-                    foreach (var rule in _viewModel.Rules)
-                    {
-                        if (rule.IsActive())
+                foreach (var rule in _viewModel.ActiveRules)
                 {
                     string previewName = rule.Rename(previewFile.Name);
                     previewFile.Name = previewName;
                 }
             }
-                }
 
-                PreviewListView.ItemsSource = _viewModel.PreviewFiles;
+            PreviewListView.ItemsSource = _viewModel.PreviewFiles;
         }
 
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
@@ -168,7 +184,7 @@ namespace BatchRename
             {
                 LoadFilesFrom(browsingScreen);
 
-                    ApplyRules();
+                ApplyActiveRules();
             }
         }
 
@@ -180,38 +196,42 @@ namespace BatchRename
             {
                 var fileName = Path.GetFileName(filePath);
 
-                    _viewModel.SourceFiles.Add(new File() { Path = filePath, Name = fileName });
+                _viewModel.SourceFiles.Add(new File() { Path = filePath, Name = fileName });
+            }
+        }
+
+        private void DeactivateButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = (Button)sender;
+            var rule = (IRule)button.DataContext;
+
+            // ! Use regular for loop to avoid runtime exception
+            for (int i = _viewModel.ActiveRules.Count - 1; i >= 0; i--)
+            {
+                if (_viewModel.ActiveRules[i].Name == rule.Name)
+                {
+                    _viewModel.ActiveRules.RemoveAt(i);
                 }
             }
 
-            private void CheckBox_Checked(object sender, RoutedEventArgs e)
+            ApplyActiveRules();
+        }
+
+        private void ActivateButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = (Button)sender;
+            var rule = (IRule)button.DataContext;
+
+            for (int i = _viewModel.DefaultRules.Count - 1; i >= 0; i--)
             {
-                //string ruleName = (string)((CheckBox)sender).Content;
-
-                //foreach (var ruleInfo in _viewModel.Rules)
-                //{
-                //    if (ruleInfo.Rule.Name == ruleName)
-                //    {
-                //        ruleInfo.Status = RuleManager.Active;
-                //    }
-                //}
-
-                //ApplyRules();
+                if (_viewModel.DefaultRules[i].Name == rule.Name &&
+                    _viewModel.ActiveRules.Any(activeRule => activeRule.Name == rule.Name) is false)
+                {
+                    _viewModel.ActiveRules.Add(_viewModel.DefaultRules[i]);
+                }
             }
 
-            private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
-            {
-                //string ruleName = (string)((CheckBox)sender).Content;
-
-                //foreach (var ruleInfo in _viewModel.Rules)
-                //{
-                //    if (ruleInfo.Rule.Name == ruleName)
-                //    {
-                //        ruleInfo.Status = RuleManager.Unactive;
-                //    }
-                //}
-
-                //ApplyRules();
+            ApplyActiveRules();
         }
     }
 }

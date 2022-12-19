@@ -1,1 +1,4 @@
 ﻿ToPascalCase
+AddPrefix:Prefix=In stock
+AddSuffix:Suffix=Premium
+ChangeExtension:Extension=.md
