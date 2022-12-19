@@ -37,10 +37,10 @@ namespace BatchRename
     {
         public ObservableCollection<string> Presets { get; set; } = new();
 
-        public ObservableCollection<IRule> DefaultRules { get; set; } = new();
+        public ObservableCollection<IRule> CurrentRules { get; set; } = new();
         public ObservableCollection<IRule> ActiveRules { get; set; } = new();
 
-        public ObservableCollection<File> SourceFiles { get; set; } = new();
+        public ObservableCollection<File> OriginalFiles { get; set; } = new();
         public ObservableCollection<File> PreviewFiles { get; set; } = new();
     }
 
@@ -59,12 +59,12 @@ namespace BatchRename
             _viewModel.Presets.Add("no presets");
             PresetComboBox.ItemsSource = _viewModel.Presets;
 
-            _viewModel.DefaultRules = LoadDefaultRulesFromPrototypes();
-            RuleListView.ItemsSource = _viewModel.DefaultRules;
+            _viewModel.CurrentRules = LoadDefaultRulesFromPrototypes();
+            RuleListView.ItemsSource = _viewModel.CurrentRules;
 
             ActiveRuleListView.ItemsSource = _viewModel.ActiveRules;
 
-            FileListView.ItemsSource = _viewModel.SourceFiles;
+            FileListView.ItemsSource = _viewModel.OriginalFiles;
 
             PreviewListView.ItemsSource = _viewModel.PreviewFiles;
         }
@@ -116,7 +116,7 @@ namespace BatchRename
 
         private void ResetDefaultRules()
         {
-            _viewModel.DefaultRules = LoadDefaultRulesFromPrototypes();
+            _viewModel.CurrentRules = LoadDefaultRulesFromPrototypes();
         }
 
         private void LoadSelectedPresets()
@@ -151,24 +151,26 @@ namespace BatchRename
 
         private void UpdateDefaultRule(IRule newRule)
         {
-            for (int i = _viewModel.DefaultRules.Count - 1; i >= 0; i--)
+            for (int i = _viewModel.CurrentRules.Count - 1; i >= 0; i--)
             {
-                if (_viewModel.DefaultRules[i].Name == newRule.Name)
+                if (_viewModel.CurrentRules[i].Name == newRule.Name)
                 {
-                    _viewModel.DefaultRules[i] = (IRule)newRule.Clone();
+                    _viewModel.CurrentRules[i] = (IRule)newRule.Clone();
                 }
             }
         }
 
         private void ApplyActiveRules()
         {
-            _viewModel.PreviewFiles = _viewModel.SourceFiles.Clone();
+            _viewModel.PreviewFiles = _viewModel.OriginalFiles.Clone();
 
-            foreach (var previewFile in _viewModel.PreviewFiles)
+            foreach (var activeRule in _viewModel.ActiveRules)
             {
-                foreach (var rule in _viewModel.ActiveRules)
+                var ruleToBeApplied = (IRule)activeRule.Clone();
+
+                foreach (var previewFile in _viewModel.PreviewFiles)
                 {
-                    string previewName = rule.Rename(previewFile.Name);
+                    string previewName = ruleToBeApplied.Rename(previewFile.Name);
                     previewFile.Name = previewName;
                 }
             }
@@ -196,42 +198,42 @@ namespace BatchRename
             {
                 var fileName = Path.GetFileName(filePath);
 
-                _viewModel.SourceFiles.Add(new File() { Path = filePath, Name = fileName });
+                _viewModel.OriginalFiles.Add(new File() { Path = filePath, Name = fileName });
             }
         }
 
         private void DeactivateButton_Click(object sender, RoutedEventArgs e)
         {
-            var button = (Button)sender;
-            var rule = (IRule)button.DataContext;
+            var senderButton = (Button)sender;
+            var currentRule = (IRule)senderButton.DataContext;
 
             // ! Use regular for loop to avoid runtime exception
             for (int i = _viewModel.ActiveRules.Count - 1; i >= 0; i--)
             {
-                if (_viewModel.ActiveRules[i].Name == rule.Name)
+                if (_viewModel.ActiveRules[i].Name == currentRule.Name)
                 {
                     _viewModel.ActiveRules.RemoveAt(i);
+                    ApplyActiveRules();
                 }
             }
-
-            ApplyActiveRules();
         }
 
         private void ActivateButton_Click(object sender, RoutedEventArgs e)
         {
-            var button = (Button)sender;
-            var rule = (IRule)button.DataContext;
+            var senderButton = (Button)sender;
+            var currentRule = (IRule)senderButton.DataContext;
 
-            for (int i = _viewModel.DefaultRules.Count - 1; i >= 0; i--)
+            for (int i = _viewModel.CurrentRules.Count - 1; i >= 0; i--)
             {
-                if (_viewModel.DefaultRules[i].Name == rule.Name &&
-                    _viewModel.ActiveRules.Any(activeRule => activeRule.Name == rule.Name) is false)
+                if (_viewModel.CurrentRules[i].Name == currentRule.Name &&
+                    _viewModel.ActiveRules.Any(activeRule => activeRule.Name == currentRule.Name) is false)
                 {
-                    _viewModel.ActiveRules.Add(_viewModel.DefaultRules[i]);
+                    var ruleToBeActivated = (IRule)_viewModel.CurrentRules[i].Clone();
+
+                    _viewModel.ActiveRules.Add(ruleToBeActivated);
+                    ApplyActiveRules();
                 }
             }
-
-            ApplyActiveRules();
         }
     }
 }
