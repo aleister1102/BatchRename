@@ -1,53 +1,121 @@
 ﻿<Window x:Class="BatchRename.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BatchRename"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
+        Title="MainWindow" Height="450" Width="1000"
         Loaded="Window_Loaded" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <local:PathToNameConverter x:Key="PathToNameConverter" />
-    </Window.Resources>
-    <DockPanel>
-        <DockPanel Name="ConfigPanel" LastChildFill="True">
-            <Button Name="GetPresets"
-                Width="220" Height="50" Margin="0 10"
-                Content="Load preset ..." DockPanel.Dock="Top" Click="BrowsePresets_Click" />
 
-            <ComboBox Name="PresetComboBox" Width="220" Margin="0 10" DockPanel.Dock="Top"
+        <Style x:Key="BrowseButton">
+            <Setter Property="Button.Width" Value="220" />
+            <Setter Property="Button.Height" Value="50" />
+            <Setter Property="Button.Margin" Value="0 10" />
+            <Setter Property="Button.Background" Value="#7de5ed" />
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Width" Value="220" />
+            <Setter Property="Margin" Value="0 10" />
+        </Style>
+
+        <Style TargetType="ListView">
+            <Setter Property="Width" Value="240" />
+            <Setter Property="Height" Value="280" />
+            <Setter Property="Margin" Value="0 10" />
+        </Style>
+
+        <Style x:Key="RuleGrid">
+            <Setter Property="Grid.Background" Value="#4cc2ff" />
+            <Setter Property="Grid.Width" Value="210" />
+        </Style>
+
+        <Style x:Key="RuleButton">
+            <Setter Property="Button.FontSize" Value="12"></Setter>
+            <Setter Property="Button.Background" Value="LightGray"></Setter>
+            <Setter Property="Button.VerticalAlignment" Value="Center"></Setter>
+        </Style>
+
+        <Style x:Key="RuleName">
+            <Setter Property="TextBlock.Margin" Value="10 0" />
+            <Setter Property="TextBlock.Foreground" Value="#fff" />
+            <Setter Property="TextBlock.VerticalAlignment" Value="Center" />
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Orientation="Horizontal">
+        <DockPanel Name="ConfigPanel">
+            <Button Name="BrowsePresets"
+                    Content="Load preset ..." DockPanel.Dock="Top" Click="BrowsePresets_Click"
+                    Style="{StaticResource BrowseButton}" />
+
+            <ComboBox Name="PresetComboBox" DockPanel.Dock="Top"
                   SelectionChanged="PresetComboBox_SelectionChanged">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Path=., Converter={StaticResource PathToNameConverter}}"></TextBlock>
+                        <TextBlock Text="{Binding Path=., Converter={StaticResource PathToNameConverter}}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
 
-            <!-- TODO: Create check box for each rules -->
-            <ListView Name="RuleListView" Width="220" Height="300" Margin="0 10" DockPanel.Dock="Bottom">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <!-- TODO: find a way to import UI from plugins and load into rule's configuration -->
-                        <Expander Name="RuleExpander" Background="#0078d4" Foreground="#fff"
-                                HorizontalAlignment="Center" Header="{Binding .}"
-                                ExpandDirection="Down" IsExpanded="False" Width="180">
-                            <TextBlock Text="This is rule's configuration" Background="#fff" Foreground="#000" />
-                        </Expander>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+            <StackPanel>
+                <ListView Name="RuleListView">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid DataContext="{Binding}" Style="{StaticResource RuleGrid}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="20" />
+                                </Grid.RowDefinitions>
+
+                                <Button Name="DeactivateButton" Content="-" Grid.Column="0" Click="DeactivateButton_Click" Style="{StaticResource RuleButton}" />
+                                <TextBlock Name="RuleTextBlock" Text="{Binding Name}" Grid.Column="1" Style="{StaticResource RuleName}" />
+                                <Button Name="ActivateButton" Content="+"  Grid.Column="2" Click="ActivateButton_Click" Style="{StaticResource RuleButton}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
+
+            <StackPanel>
+                <ListView Name="ActiveRuleListView">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Background="#4cc2ff" Width="210" DataContext="{Binding}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="20" />
+                                </Grid.RowDefinitions>
+
+                                <Button Name="DeactivateButton" Content="-" Grid.Column="0" Click="DeactivateButton_Click" Style="{StaticResource RuleButton}" />
+                                <TextBlock Name="RuleTextBlock" Text="{Binding Name}" Grid.Column="1" Style="{StaticResource RuleName}" />
+                                <Button Name="ActivateButton" Content="+"  Grid.Column="2" Click="ActivateButton_Click" Style="{StaticResource RuleButton}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
         </DockPanel>
 
-        <DockPanel Width="500">
+        <StackPanel Name="FilePanel"
+                    Margin="20 0">
             <Button Name="BrowseButton"
-                Width="200" Height="50" Margin="0 10"
-                Content="Browse files ..." DockPanel.Dock="Top" Click="BrowseButton_Click" HorizontalAlignment="Left" />
+                    Content="Browse files ..." Click="BrowseButton_Click"
+                    Style="{StaticResource BrowseButton}" />
 
-            <StackPanel Orientation="Horizontal">
-                <ListView Name="FileListView" Width="200" Height="300" VerticalAlignment="Top">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
+                <ListView Name="FileListView">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Name}"></TextBlock>
@@ -55,7 +123,7 @@
                     </ListView.ItemTemplate>
                 </ListView>
 
-                <ListView Name="PreviewListView" Width="200" Height="300" VerticalAlignment="Top">
+                <ListView Name="PreviewListView">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Name}"></TextBlock>
@@ -63,6 +131,6 @@
                     </ListView.ItemTemplate>
                 </ListView>
             </StackPanel>
-        </DockPanel>
-    </DockPanel>
+        </StackPanel>
+    </StackPanel>
 </Window>
