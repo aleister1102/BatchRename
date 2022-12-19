@@ -213,6 +213,7 @@ namespace BatchRename
                 if (_viewModel.ActiveRules[i].Name == currentRule.Name)
                 {
                     _viewModel.ActiveRules.RemoveAt(i);
+
                     ApplyActiveRules();
                 }
             }
@@ -231,9 +232,30 @@ namespace BatchRename
                     var ruleToBeActivated = (IRule)_viewModel.AvailableRules[i].Clone();
 
                     _viewModel.ActiveRules.Add(ruleToBeActivated);
+
                     ApplyActiveRules();
                 }
             }
+        }
+
+        private void ActivateAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var rule in _viewModel.AvailableRules)
+            {
+                if (_viewModel.ActiveRules.Any(activeRule => activeRule.Name == rule.Name) is false)
+                {
+                    var ruleToBeActivated = (IRule)rule.Clone();
+                    _viewModel.ActiveRules.Add(ruleToBeActivated);
+
+                    ApplyActiveRules();
+                }
+            }
+        }
+
+        private void DeactivateAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            ResetActiveRules();
+            ApplyActiveRules();
         }
     }
 }

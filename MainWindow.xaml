@@ -91,7 +91,7 @@
                 <StackPanel Name="AvailableRulesPanel">
                     <StackPanel Orientation="Horizontal" Width="240">
                         <TextBlock Style="{StaticResource ListName}">Available rules</TextBlock>
-                        <Button Name="ActivateAllButton" Style="{StaticResource ListButton}">Activate all</Button>
+                        <Button Name="ActivateAllButton" Style="{StaticResource ListButton}" Click="ActivateAllButton_Click">Activate all</Button>
                     </StackPanel>
 
                     <ListView Name="AvailableRulesListView" Style="{StaticResource RuleListView}">
@@ -117,7 +117,7 @@
                 <StackPanel Name="ActiveRulesPanel">
                     <StackPanel Orientation="Horizontal" Width="240">
                         <TextBlock Style="{StaticResource ListName}">Active rules</TextBlock>
-                        <Button Name="DeactivateAllButton" Style="{StaticResource ListButton}">Deactivate all</Button>
+                        <Button Name="DeactivateAllButton" Style="{StaticResource ListButton}" Click="DeactivateAllButton_Click">Deactivate all</Button>
                     </StackPanel>
 
                     <ListView Name="ActiveRulesListView" Style="{StaticResource RuleListView}">
