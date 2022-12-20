@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -77,16 +78,14 @@ namespace BatchRename
 
             if (browsingScreen.ShowDialog() == true)
             {
-                LoadFilesFrom(browsingScreen);
+                LoadFilesFrom(browsingScreen.FileNames);
 
                 ApplyActiveRules();
             }
         }
 
-        private void LoadFilesFrom(OpenFileDialog browsingScreen)
+        private void LoadFilesFrom(string[] filePaths)
         {
-            var filePaths = browsingScreen.FileNames;
-
             foreach (var filePath in filePaths)
             {
                 var fileName = Path.GetFileName(filePath);
@@ -267,6 +266,17 @@ namespace BatchRename
 
         private void SaveActiveRulesButton_Click(object sender, RoutedEventArgs e)
         {
+        }
+
+        // ! Reference: https://stackoverflow.com/questions/5662509/drag-and-drop-files-into-wpf
+        private void OriginalFilesListView_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] filePaths = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+                LoadFilesFrom(filePaths);
+            }
         }
     }
 }

@@ -159,7 +159,8 @@
         <StackPanel Name="FilePanel" Orientation="Horizontal" Grid.Row="1" Grid.Column="1" VerticalAlignment="Top">
             <StackPanel>
                 <TextBlock>Original files</TextBlock>
-                <ListView Name="OriginalFilesListView" Style="{StaticResource FileListView}">
+                <ListView Name="OriginalFilesListView" Style="{StaticResource FileListView}"
+                          AllowDrop="True" Drop="OriginalFilesListView_Drop">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Name}"></TextBlock>
