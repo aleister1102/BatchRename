@@ -90,7 +90,10 @@ namespace BatchRename
             {
                 var fileName = Path.GetFileName(filePath);
 
-                _viewModel.OriginalFiles.Add(new File() { Path = filePath, Name = fileName });
+                if (_viewModel.OriginalFiles.Any(file => file.Name == fileName) is false)
+                {
+                    _viewModel.OriginalFiles.Add(new File() { Path = filePath, Name = fileName });
+                }
             }
         }
 
