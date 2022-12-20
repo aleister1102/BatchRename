@@ -10,26 +10,26 @@
     <Window.Resources>
         <local:PathToNameConverter x:Key="PathToNameConverter" />
 
-        <Style x:Key="BrowseButton">
-            <Setter Property="Button.Width" Value="148" />
+        <Style x:Key="RectangularButton">
+            <Setter Property="Button.Width" Value="100" />
             <Setter Property="Button.Height" Value="30" />
-            <Setter Property="Button.Margin" Value="20 0" />
-            <Setter Property="Button.Background" Value="#7de5ed" />
+            <Setter Property="Button.Margin" Value="10 0" />
+        </Style>
+
+        <Style x:Key="SquareButton">
+            <Setter Property="Button.Width" Value="30"></Setter>
+            <Setter Property="Button.Height" Value="30"></Setter>
+            <Setter Property="Button.FontSize" Value="12"></Setter>
+            <Setter Property="Button.Margin" Value="10 0" />
+            <Setter Property="Button.Background" Value="LightGray"></Setter>
+            <Setter Property="Button.VerticalAlignment" Value="Center"></Setter>
+            <Setter Property="Button.HorizontalAlignment" Value="Center"></Setter>
         </Style>
 
         <Style TargetType="ComboBox">
-            <Setter Property="Width" Value="140" />
+            <Setter Property="Width" Value="100" />
             <Setter Property="Height" Value="30" />
             <Setter Property="Margin" Value="20 0" />
-            <Setter Property="Margin" Value="20 0" />
-        </Style>
-
-        <Style x:Key="ListName">
-            <Setter Property="TextBlock.Margin" Value="20 0" />
-        </Style>
-
-        <Style x:Key="ListButton">
-            <Setter Property="Button.Width" Value="100" />
         </Style>
 
         <Style x:Key="RuleListView">
@@ -43,13 +43,9 @@
             <Setter Property="Grid.Background" Value="#4cc2ff" />
         </Style>
 
-        <Style x:Key="RuleButton">
-            <Setter Property="Button.FontSize" Value="12"></Setter>
-            <Setter Property="Button.Background" Value="LightGray"></Setter>
-            <Setter Property="Button.VerticalAlignment" Value="Center"></Setter>
-        </Style>
-
         <Style x:Key="RuleName">
+            <Setter Property="TextBlock.Padding" Value="8 0" />
+            <Setter Property="TextBlock.FontSize" Value="14" />
             <Setter Property="TextBlock.Foreground" Value="#fff" />
         </Style>
 
@@ -69,13 +65,20 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <Grid.Resources>
+            <Style TargetType="StackPanel">
+                <Setter Property="Margin" Value="0 5" />
+            </Style>
+        </Grid.Resources>
+
         <StackPanel Name="ToolbarStackPanel" Orientation="Horizontal" Grid.Row="0" Grid.ColumnSpan="2">
             <Button Name="BrowseFilesButton"
                     Content="Browse files ..." Click="BrowseFilesButton_Click"
-                    Style="{StaticResource BrowseButton}" />
+                    Style="{StaticResource RectangularButton}"
+                    Margin="20 0 10 0" />
             <Button Name="BrowsePresetsButton"
                     Content="Load preset ..." DockPanel.Dock="Top" Click="BrowsePresetsButton_Click"
-                    Style="{StaticResource BrowseButton}" />
+                    Style="{StaticResource RectangularButton}" />
             <ComboBox Name="PresetComboBox" SelectionChanged="PresetComboBox_SelectionChanged">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
@@ -83,6 +86,12 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
+            <Button Name="RefreshPresetsButton" Style="{StaticResource SquareButton}" Click="RefreshPresetsButton_Click">
+                <Image Source="images/refresh.png" />
+            </Button>
+            <Button Name="SaveActiveRulesButton" Style="{StaticResource SquareButton}" Click="SaveActiveRulesButton_Click">
+                <Image Source="images/save.png" />
+            </Button>
         </StackPanel>
 
         <StackPanel Name="RulePanel" Grid.Row="1" Grid.Column="0">
@@ -90,8 +99,16 @@
             <StackPanel Orientation="Horizontal">
                 <StackPanel Name="AvailableRulesPanel">
                     <StackPanel Orientation="Horizontal" Width="240">
-                        <TextBlock Style="{StaticResource ListName}">Available rules</TextBlock>
-                        <Button Name="ActivateAllButton" Style="{StaticResource ListButton}" Click="ActivateAllButton_Click">Activate all</Button>
+                        <TextBlock Margin="10 0 7 0" VerticalAlignment="Center">Available rules</TextBlock>
+                        <Button Name="ActivateAllButton"
+                                Style="{StaticResource RectangularButton}"
+                                Width="90" Margin="7 0"
+                                Click="ActivateAllButton_Click">Activate all</Button>
+                        <Button Name="AvailableSortButton" Style="{StaticResource SquareButton}"
+                                Margin="7 0 10 0"
+                                Click="AvailableSortButton_Click">
+                            <Image Source="images/sort-down.png" />
+                        </Button>
                     </StackPanel>
 
                     <ListView Name="AvailableRulesListView" Style="{StaticResource RuleListView}">
@@ -107,7 +124,7 @@
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Name="RuleTextBlock" Text="{Binding Name}" Grid.Column="0" Style="{StaticResource RuleName}" />
-                                    <Button Content="+"  Grid.Column="1" Click="ActivateButton_Click" Style="{StaticResource RuleButton}" />
+                                    <Button Content="+"  Grid.Column="1" Click="ActivateButton_Click" Style="{StaticResource SquareButton}" />
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
@@ -116,8 +133,16 @@
 
                 <StackPanel Name="ActiveRulesPanel">
                     <StackPanel Orientation="Horizontal" Width="240">
-                        <TextBlock Style="{StaticResource ListName}">Active rules</TextBlock>
-                        <Button Name="DeactivateAllButton" Style="{StaticResource ListButton}" Click="DeactivateAllButton_Click">Deactivate all</Button>
+                        <TextBlock Margin="10 0 8 0" VerticalAlignment="Center">Active rules</TextBlock>
+                        <Button Name="DeactivateAllButton"
+                                Style="{StaticResource RectangularButton}"
+                                Width="90" Margin="8 0"
+                                Click="DeactivateAllButton_Click">Deactivate all</Button>
+                        <Button Name="ActiveSortButton" Style="{StaticResource SquareButton}"
+                                Margin="8 0 10 0"
+                                Click="ActiveSortButton_Click">
+                            <Image Source="images/sort-down.png" />
+                        </Button>
                     </StackPanel>
 
                     <ListView Name="ActiveRulesListView" Style="{StaticResource RuleListView}">
@@ -132,7 +157,7 @@
                                         <RowDefinition Height="20" />
                                     </Grid.RowDefinitions>
 
-                                    <Button Name="DeactivateButton" Content="-" Grid.Column="0" Click="DeactivateButton_Click" Style="{StaticResource RuleButton}" />
+                                    <Button Name="DeactivateButton" Content="x" Grid.Column="0" Click="DeactivateButton_Click" Style="{StaticResource SquareButton}" />
                                     <TextBlock Text="{Binding Name}" Grid.Column="1" Style="{StaticResource RuleName}" />
                                 </Grid>
                             </DataTemplate>

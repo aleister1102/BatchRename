@@ -255,7 +255,24 @@ namespace BatchRename
         private void DeactivateAllButton_Click(object sender, RoutedEventArgs e)
         {
             ResetActiveRules();
+
             ApplyActiveRules();
+        }
+
+        private void RefreshPresetsButton_Click(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void SaveActiveRulesButton_Click(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void AvailableSortButton_Click(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void ActiveSortButton_Click(object sender, RoutedEventArgs e)
+        {
         }
     }
 }
