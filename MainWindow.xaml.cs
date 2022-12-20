@@ -138,16 +138,16 @@ namespace BatchRename
 
             if (System.IO.File.Exists(presetPath))
             {
-                var presetLines = System.IO.File.ReadAllLines(presetPath);
-                UpdateRules(presetLines);
+                var configLines = System.IO.File.ReadAllLines(presetPath);
+                UpdateRules(configLines);
             }
         }
 
-        private void UpdateRules(string[] presetLines)
+        private void UpdateRules(string[] configLines)
         {
-            foreach (var presetLine in presetLines)
+            foreach (var configLine in configLines)
             {
-                var newRule = RuleFactory.CreateWith(presetLine);
+                var newRule = RuleFactory.CreateWith(configLine);
 
                 UpdateActiveRule(newRule);
                 UpdateDefaultRule(newRule);

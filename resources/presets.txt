@@ -1,4 +1,7 @@
-﻿ToPascalCase
-AddPrefix:Prefix=In stock
-AddSuffix:Suffix=Premium
-ChangeExtension:Extension=.md
+﻿AddCounter:Start=1;Step=1;NumberOfDigits=2;
+AddPrefix:Prefix=In stock;
+AddSuffix:Suffix=Premium;
+ChangeExtension:NewExtension=.md;
+ReplaceSpecialChars:SpecialChars=-_;Replacement= ;
+ToPascalCase
+Trimming

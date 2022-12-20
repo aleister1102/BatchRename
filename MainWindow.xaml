@@ -114,23 +114,7 @@
         <StackPanel Name="RulePanel" Grid.Row="1" Grid.Column="0">
             <StackPanel Name="RuleConfigPanel" Style="{StaticResource RuleConfig}">
                 <TextBlock Name="RuleTitle" FontWeight="Bold" FontSize="18" Text="{Binding Path=SelectedRule}"></TextBlock>
-                <WrapPanel>
-                    <StackPanel Margin="0 0 10 0">
-                        <Label Content="Start" FontSize="14" />
-                        <TextBox Style="{StaticResource TwoColumnTextBox}"></TextBox>
-                        <TextBlock FontSize="10">Validation message</TextBlock>
-                    </StackPanel>
-                    <StackPanel Margin="0 0 10 0">
-                        <Label Content="Step" FontSize="14" />
-                        <TextBox Style="{StaticResource TwoColumnTextBox}"></TextBox>
-                        <TextBlock FontSize="10">Validation message</TextBlock>
-                    </StackPanel>
-                    <StackPanel Margin="0 0 10 0">
-                        <Label Content="Number of digits" FontSize="14" />
-                        <TextBox Style="{StaticResource TwoColumnTextBox}"></TextBox>
-                        <TextBlock FontSize="10">Validation message</TextBlock>
-                    </StackPanel>
-                </WrapPanel>
+                
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <StackPanel Name="AvailableRulesPanel">

@@ -86,33 +86,26 @@ namespace BatchRename
             return _instance;
         }
 
-        public static IRule CreateWith(string presetLine)
+        public static IRule CreateWith(string configLine)
         {
-            (var ruleName, var presetPairs) = Parse(presetLine);
+            (var ruleName, var configs) = ParseConfigLine(configLine);
 
             var rule = (IRule)_prototypes[ruleName].Clone();
 
-            rule.Config(presetPairs);
+            rule.Config(configs);
 
             return rule;
         }
 
-        private static (string, string[]) Parse(string presetLine)
+        private static (string, string) ParseConfigLine(string configLine)
         {
-            var rulePreset = presetLine.Split(":");
-            var ruleName = rulePreset[0];
-            var presetPairs = ParsePresetPairs(rulePreset);
+            var configPairs = configLine.Split(":");
+            var ruleName = configPairs[0];
 
-            return (ruleName, presetPairs);
-        }
+            if (configPairs.Length < 2) return (ruleName, "");
 
-        private static string[] ParsePresetPairs(string[] rulePreset)
-        {
-            var presetPairs = rulePreset.Length > 1
-                ? rulePreset[1].Split(";")
-                : new string[] { "" };
-
-            return presetPairs;
+            var configs = configPairs[1];
+            return (ruleName, configs);
         }
 
         public static Dictionary<string, IRule> GetPrototypes()
