@@ -30,6 +30,7 @@
             <Setter Property="Width" Value="100" />
             <Setter Property="Height" Value="30" />
             <Setter Property="Margin" Value="20 0" />
+            <Setter Property="VerticalAlignment" Value="Center"></Setter>
         </Style>
 
         <Style x:Key="RuleListView">
@@ -99,16 +100,10 @@
             <StackPanel Orientation="Horizontal">
                 <StackPanel Name="AvailableRulesPanel">
                     <StackPanel Orientation="Horizontal" Width="240">
-                        <TextBlock Margin="10 0 7 0" VerticalAlignment="Center">Available rules</TextBlock>
+                        <TextBlock Margin="20 0" VerticalAlignment="Center">Available rules</TextBlock>
                         <Button Name="ActivateAllButton"
                                 Style="{StaticResource RectangularButton}"
-                                Width="90" Margin="7 0"
                                 Click="ActivateAllButton_Click">Activate all</Button>
-                        <Button Name="AvailableSortButton" Style="{StaticResource SquareButton}"
-                                Margin="7 0 10 0"
-                                Click="AvailableSortButton_Click">
-                            <Image Source="images/sort-down.png" />
-                        </Button>
                     </StackPanel>
 
                     <ListView Name="AvailableRulesListView" Style="{StaticResource RuleListView}">
@@ -133,16 +128,10 @@
 
                 <StackPanel Name="ActiveRulesPanel">
                     <StackPanel Orientation="Horizontal" Width="240">
-                        <TextBlock Margin="10 0 8 0" VerticalAlignment="Center">Active rules</TextBlock>
+                        <TextBlock Margin="20 0" VerticalAlignment="Center">Active rules</TextBlock>
                         <Button Name="DeactivateAllButton"
                                 Style="{StaticResource RectangularButton}"
-                                Width="90" Margin="8 0"
                                 Click="DeactivateAllButton_Click">Deactivate all</Button>
-                        <Button Name="ActiveSortButton" Style="{StaticResource SquareButton}"
-                                Margin="8 0 10 0"
-                                Click="ActiveSortButton_Click">
-                            <Image Source="images/sort-down.png" />
-                        </Button>
                     </StackPanel>
 
                     <ListView Name="ActiveRulesListView" Style="{StaticResource RuleListView}">

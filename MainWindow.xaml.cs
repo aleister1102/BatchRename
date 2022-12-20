@@ -3,29 +3,25 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Data;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Mail;
-using System.Security.RightsManagement;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace BatchRename
 {
-    public static class Utils
+    public static class Extensions
     {
-        public static ObservableCollection<File> Clone(this ObservableCollection<File> files)
+        public static ObservableCollection<File> Clone(this ObservableCollection<File> collection)
         {
             var result = new ObservableCollection<File>();
 
-            foreach (var file in files)
+            foreach (var item in collection)
             {
-                var clone = (File)file.Clone();
+                var clone = (File)item.Clone();
                 result.Add(clone);
             }
 
@@ -75,6 +71,30 @@ namespace BatchRename
             return result;
         }
 
+        private void BrowseFilesButton_Click(object sender, RoutedEventArgs e)
+        {
+            var browsingScreen = new OpenFileDialog { Multiselect = true };
+
+            if (browsingScreen.ShowDialog() == true)
+            {
+                LoadFilesFrom(browsingScreen);
+
+                ApplyActiveRules();
+            }
+        }
+
+        private void LoadFilesFrom(OpenFileDialog browsingScreen)
+        {
+            var filePaths = browsingScreen.FileNames;
+
+            foreach (var filePath in filePaths)
+            {
+                var fileName = Path.GetFileName(filePath);
+
+                _viewModel.OriginalFiles.Add(new File() { Path = filePath, Name = fileName });
+            }
+        }
+
         private void BrowsePresetsButton_Click(object sender, RoutedEventArgs e)
         {
             var browsingScreen = new OpenFileDialog() { Multiselect = true };
@@ -112,6 +132,7 @@ namespace BatchRename
         private void ResetActiveRules()
         {
             _viewModel.ActiveRules.Clear();
+            ActiveRulesListView.ItemsSource = _viewModel.ActiveRules;
         }
 
         private void ResetDefaultRules()
@@ -178,30 +199,6 @@ namespace BatchRename
             PreviewFilesListView.ItemsSource = _viewModel.PreviewFiles;
         }
 
-        private void BrowseFilesButton_Click(object sender, RoutedEventArgs e)
-        {
-            var browsingScreen = new OpenFileDialog { Multiselect = true };
-
-            if (browsingScreen.ShowDialog() == true)
-            {
-                LoadFilesFrom(browsingScreen);
-
-                ApplyActiveRules();
-            }
-        }
-
-        private void LoadFilesFrom(OpenFileDialog browsingScreen)
-        {
-            var filePaths = browsingScreen.FileNames;
-
-            foreach (var filePath in filePaths)
-            {
-                var fileName = Path.GetFileName(filePath);
-
-                _viewModel.OriginalFiles.Add(new File() { Path = filePath, Name = fileName });
-            }
-        }
-
         private void DeactivateButton_Click(object sender, RoutedEventArgs e)
         {
             var senderButton = (Button)sender;
@@ -213,10 +210,10 @@ namespace BatchRename
                 if (_viewModel.ActiveRules[i].Name == currentRule.Name)
                 {
                     _viewModel.ActiveRules.RemoveAt(i);
-
-                    ApplyActiveRules();
                 }
             }
+
+            ApplyActiveRules();
         }
 
         private void ActivateButton_Click(object sender, RoutedEventArgs e)
@@ -232,10 +229,10 @@ namespace BatchRename
                     var ruleToBeActivated = (IRule)_viewModel.AvailableRules[i].Clone();
 
                     _viewModel.ActiveRules.Add(ruleToBeActivated);
-
-                    ApplyActiveRules();
                 }
             }
+
+            ApplyActiveRules();
         }
 
         private void ActivateAllButton_Click(object sender, RoutedEventArgs e)
@@ -246,9 +243,9 @@ namespace BatchRename
                 {
                     var ruleToBeActivated = (IRule)rule.Clone();
                     _viewModel.ActiveRules.Add(ruleToBeActivated);
-
-                    ApplyActiveRules();
                 }
+
+                ApplyActiveRules();
             }
         }
 
@@ -261,17 +258,14 @@ namespace BatchRename
 
         private void RefreshPresetsButton_Click(object sender, RoutedEventArgs e)
         {
+            ResetActiveRules();
+
+            LoadSelectedPresets();
+
+            ApplyActiveRules();
         }
 
         private void SaveActiveRulesButton_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
-        private void AvailableSortButton_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
-        private void ActiveSortButton_Click(object sender, RoutedEventArgs e)
         {
         }
     }

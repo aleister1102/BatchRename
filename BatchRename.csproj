@@ -10,8 +10,6 @@
   <ItemGroup>
     <None Remove="images\refresh.png" />
     <None Remove="images\save.png" />
-    <None Remove="images\sort-down.png" />
-    <None Remove="images\sort-up.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,12 +30,6 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="images\save.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="images\sort-down.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="images\sort-up.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
