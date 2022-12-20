@@ -33,13 +33,29 @@
             <Setter Property="VerticalAlignment" Value="Center"></Setter>
         </Style>
 
+        <Style x:Key="RuleConfig">
+            <Setter Property="Grid.Width" Value="520" />
+            <Setter Property="Grid.Height" Value="160" />
+        </Style>
+
+        <Style x:Key="TwoColumnTextBox">
+            <Setter Property="TextBox.Width" Value="220" />
+            <Setter Property="TextBox.Height" Value="20" />
+        </Style>
+
+        <Style x:Key="ListViewTitle">
+            <Setter Property="TextBlock.FontWeight" Value="Bold" />
+            <Setter Property="TextBlock.Margin" Value="20 0" />
+            <Setter Property="TextBlock.VerticalAlignment" Value="Center" />
+        </Style>
+
         <Style x:Key="RuleListView">
             <Setter Property="ListView.Width" Value="240" />
             <Setter Property="ListView.Height" Value="400" />
             <Setter Property="ListView.Margin" Value="20 0" />
         </Style>
 
-        <Style x:Key="RuleGrid">
+        <Style x:Key="RuleRow">
             <Setter Property="Grid.Width" Value="220" />
             <Setter Property="Grid.Background" Value="#4cc2ff" />
         </Style>
@@ -96,20 +112,43 @@
         </StackPanel>
 
         <StackPanel Name="RulePanel" Grid.Row="1" Grid.Column="0">
-            <Grid Name="RuleConfig"></Grid>
+            <StackPanel Name="RuleConfigPanel" Style="{StaticResource RuleConfig}">
+                <TextBlock Name="RuleTitle" FontWeight="Bold" FontSize="18" Text="{Binding Path=SelectedRule}"></TextBlock>
+                <WrapPanel>
+                    <StackPanel Margin="0 0 10 0">
+                        <Label Content="Start" FontSize="14" />
+                        <TextBox Style="{StaticResource TwoColumnTextBox}"></TextBox>
+                        <TextBlock FontSize="10">Validation message</TextBlock>
+                    </StackPanel>
+                    <StackPanel Margin="0 0 10 0">
+                        <Label Content="Step" FontSize="14" />
+                        <TextBox Style="{StaticResource TwoColumnTextBox}"></TextBox>
+                        <TextBlock FontSize="10">Validation message</TextBlock>
+                    </StackPanel>
+                    <StackPanel Margin="0 0 10 0">
+                        <Label Content="Number of digits" FontSize="14" />
+                        <TextBox Style="{StaticResource TwoColumnTextBox}"></TextBox>
+                        <TextBlock FontSize="10">Validation message</TextBlock>
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <StackPanel Name="AvailableRulesPanel">
                     <StackPanel Orientation="Horizontal" Width="240">
-                        <TextBlock Margin="20 0" VerticalAlignment="Center">Available rules</TextBlock>
+                        <TextBlock Style="{StaticResource ListViewTitle}">Available rules</TextBlock>
                         <Button Name="ActivateAllButton"
                                 Style="{StaticResource RectangularButton}"
                                 Click="ActivateAllButton_Click">Activate all</Button>
                     </StackPanel>
 
-                    <ListView Name="AvailableRulesListView" Style="{StaticResource RuleListView}">
+                    <ListView Name="AvailableRulesListView"
+                              Style="{StaticResource RuleListView}"
+                              SelectionMode="Single"
+                              SelectionChanged="AvailableRulesListView_SelectionChanged">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid DataContext="{Binding}" Style="{StaticResource RuleGrid}">
+                                <Grid DataContext="{Binding}"
+                                      Style="{StaticResource RuleRow}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="180" />
                                         <ColumnDefinition Width="*" />
@@ -128,7 +167,7 @@
 
                 <StackPanel Name="ActiveRulesPanel">
                     <StackPanel Orientation="Horizontal" Width="240">
-                        <TextBlock Margin="20 0" VerticalAlignment="Center">Active rules</TextBlock>
+                        <TextBlock Style="{StaticResource ListViewTitle}">Active rules</TextBlock>
                         <Button Name="DeactivateAllButton"
                                 Style="{StaticResource RectangularButton}"
                                 Click="DeactivateAllButton_Click">Deactivate all</Button>
@@ -137,7 +176,7 @@
                     <ListView Name="ActiveRulesListView" Style="{StaticResource RuleListView}">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid DataContext="{Binding}" Style="{StaticResource RuleGrid}">
+                                <Grid DataContext="{Binding}" Style="{StaticResource RuleRow}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="180" />
@@ -158,7 +197,7 @@
 
         <StackPanel Name="FilePanel" Orientation="Horizontal" Grid.Row="1" Grid.Column="1" VerticalAlignment="Top">
             <StackPanel>
-                <TextBlock>Original files</TextBlock>
+                <TextBlock Style="{StaticResource ListViewTitle}">Original files</TextBlock>
                 <ListView Name="OriginalFilesListView" Style="{StaticResource FileListView}"
                           AllowDrop="True" Drop="OriginalFilesListView_Drop">
                     <ListView.ItemTemplate>
@@ -170,7 +209,7 @@
             </StackPanel>
 
             <StackPanel>
-                <TextBlock>Preview files</TextBlock>
+                <TextBlock Style="{StaticResource ListViewTitle}">Preview files</TextBlock>
                 <ListView Name="PreviewFilesListView" Style="{StaticResource FileListView}">
                     <ListView.ItemTemplate>
                         <DataTemplate>

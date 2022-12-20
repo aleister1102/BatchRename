@@ -14,33 +14,6 @@ using System.Windows.Media.Imaging;
 
 namespace BatchRename
 {
-    public static class Extensions
-    {
-        public static ObservableCollection<File> Clone(this ObservableCollection<File> collection)
-        {
-            var result = new ObservableCollection<File>();
-
-            foreach (var item in collection)
-            {
-                var clone = (File)item.Clone();
-                result.Add(clone);
-            }
-
-            return result;
-        }
-    }
-
-    public class ViewModel
-    {
-        public ObservableCollection<string> Presets { get; set; } = new();
-
-        public ObservableCollection<IRule> AvailableRules { get; set; } = new();
-        public ObservableCollection<IRule> ActiveRules { get; set; } = new();
-
-        public ObservableCollection<File> OriginalFiles { get; set; } = new();
-        public ObservableCollection<File> PreviewFiles { get; set; } = new();
-    }
-
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -49,10 +22,27 @@ namespace BatchRename
             RuleFactory.Instance();
         }
 
+        private class ViewModel : INotifyPropertyChanged
+        {
+            public ObservableCollection<string> Presets { get; set; } = new();
+
+            public ObservableCollection<IRule> AvailableRules { get; set; } = new();
+            public ObservableCollection<IRule> ActiveRules { get; set; } = new();
+
+            public ObservableCollection<File> OriginalFiles { get; set; } = new();
+            public ObservableCollection<File> PreviewFiles { get; set; } = new();
+
+            public string SelectedRule { get; set; } = string.Empty;
+
+            public event PropertyChangedEventHandler? PropertyChanged;
+        }
+
         private readonly ViewModel _viewModel = new();
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            DataContext = _viewModel;
+
             _viewModel.Presets.Add("no presets");
             PresetComboBox.ItemsSource = _viewModel.Presets;
 
@@ -280,6 +270,18 @@ namespace BatchRename
 
                 LoadFilesFrom(filePaths);
             }
+        }
+
+        private void AvailableRulesListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var selectedRule = (IRule)((ListView)sender).SelectedItem;
+
+            _viewModel.SelectedRule = selectedRule.Name;
+        }
+
+        private void UpdateConfigPanelFor(IRule rule)
+        {
+            RuleConfigPanel.Children.Add(rule.CreateConfigPanel());
         }
     }
 }
