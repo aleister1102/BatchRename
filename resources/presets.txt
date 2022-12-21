@@ -2,6 +2,6 @@
 AddPrefix:Prefix=In stock;
 AddSuffix:Suffix=Premium;
 ChangeExtension:NewExtension=.md;
-ReplaceSpecialChars:SpecialChars=-_;Replacement= ;
+ReplaceSpecialChars:SpecialChars=-_;ReplaceWith= ;
 ToPascalCase
 Trimming

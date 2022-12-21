@@ -33,14 +33,26 @@
             <Setter Property="VerticalAlignment" Value="Center"></Setter>
         </Style>
 
-        <Style x:Key="RuleConfig">
+        <Style x:Key="RuleDetails">
             <Setter Property="Grid.Width" Value="520" />
             <Setter Property="Grid.Height" Value="160" />
         </Style>
 
-        <Style x:Key="TwoColumnTextBox">
-            <Setter Property="TextBox.Width" Value="220" />
-            <Setter Property="TextBox.Height" Value="20" />
+        <Style x:Key="RuleConfigs">
+            <Style.Resources>
+                <Style TargetType="Label">
+                    <Setter Property="FontSize" Value="14"></Setter>
+                </Style>
+                <Style TargetType="TextBox">
+                    <Setter Property="Width" Value="500"></Setter>
+                    <Setter Property="Height" Value="30"></Setter>
+                    <Setter Property="Margin" Value="0 0 20 0"></Setter>
+                </Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Text" Value="Validation message" />
+                    <Setter Property="FontSize" Value="10"></Setter>
+                </Style>
+            </Style.Resources>
         </Style>
 
         <Style x:Key="ListViewTitle">
@@ -112,8 +124,8 @@
         </StackPanel>
 
         <StackPanel Name="RulePanel" Grid.Row="1" Grid.Column="0">
-            <TextBlock Name="RuleTitle" FontWeight="Bold" FontSize="18" Width="520" Text="{Binding Path=SelectedRule}"></TextBlock>
-            <StackPanel Name="RuleDetails" Style="{StaticResource RuleConfig}">
+            <TextBlock Name="RuleTitle" FontWeight="Bold" FontSize="18" Width="520" Text="{Binding SelectedRule}"></TextBlock>
+            <StackPanel Name="RuleDetails" Style="{StaticResource RuleDetails}">
                 <WrapPanel Name="RuleConfigs"></WrapPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal">

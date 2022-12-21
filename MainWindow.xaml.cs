@@ -1,16 +1,11 @@
 ﻿using BatchRenamePlugins;
 using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 
 namespace BatchRename
 {
@@ -38,6 +33,7 @@ namespace BatchRename
         }
 
         private readonly ViewModel _viewModel = new();
+        private readonly string _configPanelKey = "RuleConfigs";
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -48,6 +44,7 @@ namespace BatchRename
 
             _viewModel.AvailableRules = LoadDefaultRulesFromPrototypes();
             AvailableRulesListView.ItemsSource = _viewModel.AvailableRules;
+            AvailableRulesListView.SelectedIndex = 0;
 
             ActiveRulesListView.ItemsSource = _viewModel.ActiveRules;
 
@@ -282,12 +279,16 @@ namespace BatchRename
 
         private void UpdateConfigPanelFor(IRule rule)
         {
-            var configPanel = RuleDetails.Children.OfType<Panel>().FirstOrDefault(panel => panel.Name == "RuleConfigs");
+            var currentConfigPanel = RuleDetails.Children.OfType<Panel>().FirstOrDefault(panel => panel.Name == _configPanelKey);
 
-            var configPanelIndex = RuleDetails.Children.IndexOf(configPanel);
+            var configPanelIndex = RuleDetails.Children.IndexOf(currentConfigPanel);
             RuleDetails.Children.RemoveAt(configPanelIndex);
 
-            var newConfigPanel = rule.CreateConfigPanel();
+            var newConfigPanel = (Panel)rule.Create();
+
+            newConfigPanel.Name = _configPanelKey;
+            newConfigPanel.Style = (Style)FindResource(_configPanelKey);
+
             RuleDetails.Children.Insert(configPanelIndex, newConfigPanel);
         }
     }
