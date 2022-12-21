@@ -9,6 +9,7 @@
         Loaded="Window_Loaded" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <local:PathToNameConverter x:Key="PathToNameConverter" />
+        <local:PascalCaseToRegularConverter x:Key="PascalCaseToRegular" />
 
         <Style x:Key="RectangularButton">
             <Setter Property="Button.Width" Value="100" />
@@ -124,7 +125,7 @@
         </StackPanel>
 
         <StackPanel Name="RulePanel" Grid.Row="1" Grid.Column="0">
-            <TextBlock Name="RuleTitle" FontWeight="Bold" FontSize="18" Width="520" Text="{Binding SelectedRule}"></TextBlock>
+            <TextBlock Name="RuleTitle" FontWeight="Bold" FontSize="18" Width="520" Text="{Binding SelectedRule, Converter={StaticResource PascalCaseToRegular}}"></TextBlock>
             <StackPanel Name="RuleDetails" Style="{StaticResource RuleDetails}">
                 <WrapPanel Name="RuleConfigs"></WrapPanel>
             </StackPanel>
@@ -153,7 +154,7 @@
                                         <RowDefinition Height="20" />
                                     </Grid.RowDefinitions>
 
-                                    <TextBlock Name="RuleTextBlock" Text="{Binding Name}" Grid.Column="0" Style="{StaticResource RuleName}" />
+                                    <TextBlock Name="RuleTextBlock" Text="{Binding Name, Converter={StaticResource PascalCaseToRegular}}" Grid.Column="0" Style="{StaticResource RuleName}" />
                                     <Button Content="+"  Grid.Column="1" Click="ActivateButton_Click" Style="{StaticResource SquareButton}" />
                                 </Grid>
                             </DataTemplate>
