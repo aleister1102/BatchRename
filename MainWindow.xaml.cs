@@ -1,12 +1,22 @@
 ﻿using BatchRenamePlugins;
 using Microsoft.Win32;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Xml.Serialization;
 
 namespace BatchRename
 {
@@ -16,6 +26,13 @@ namespace BatchRename
         {
             InitializeComponent();
             RuleFactory.Instance();
+        }
+
+        private class RuleConfig
+        {
+            public string Name { get; set; } = string.Empty;
+            public string Value { get; set; } = string.Empty;
+            public string Message { get; set; } = string.Empty;
         }
 
         private class ViewModel : INotifyPropertyChanged
@@ -28,13 +45,13 @@ namespace BatchRename
             public ObservableCollection<File> OriginalFiles { get; set; } = new();
             public ObservableCollection<File> PreviewFiles { get; set; } = new();
 
-            public string SelectedRule { get; set; } = string.Empty;
+            public IRule SelectedRule { get; set; }
+            public ObservableCollection<RuleConfig> SelectedRuleConfigs { get; set; } = new();
 
             public event PropertyChangedEventHandler? PropertyChanged;
         }
 
         private readonly ViewModel _viewModel = new();
-        private readonly string _configPanelKey = "RuleConfigs";
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -45,7 +62,6 @@ namespace BatchRename
 
             _viewModel.AvailableRules = LoadDefaultRulesFromPrototypes();
             AvailableRulesListView.ItemsSource = _viewModel.AvailableRules;
-            AvailableRulesListView.SelectedIndex = 0;
 
             ActiveRulesListView.ItemsSource = _viewModel.ActiveRules;
 
@@ -112,7 +128,7 @@ namespace BatchRename
         {
             ResetActiveRules();
 
-            ResetDefaultRules();
+            ResetAvailableRules();
 
             LoadSelectedPresets();
 
@@ -125,7 +141,7 @@ namespace BatchRename
             ActiveRulesListView.ItemsSource = _viewModel.ActiveRules;
         }
 
-        private void ResetDefaultRules()
+        private void ResetAvailableRules()
         {
             _viewModel.AvailableRules = LoadDefaultRulesFromPrototypes();
         }
@@ -148,8 +164,10 @@ namespace BatchRename
                 var newRule = RuleFactory.CreateWith(configLine);
 
                 UpdateActiveRule(newRule);
-                UpdateDefaultRule(newRule);
+                UpdateAvailableRules(newRule);
             }
+
+            RuleConfigs.ItemsSource = _viewModel.SelectedRuleConfigs;
         }
 
         private void UpdateActiveRule(IRule newRule)
@@ -160,7 +178,7 @@ namespace BatchRename
             }
         }
 
-        private void UpdateDefaultRule(IRule newRule)
+        private void UpdateAvailableRules(IRule newRule)
         {
             for (int i = _viewModel.AvailableRules.Count - 1; i >= 0; i--)
             {
@@ -272,25 +290,92 @@ namespace BatchRename
 
         private void AvailableRulesListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var selectedRule = (IRule)((ListView)sender).SelectedItem;
+            var selectedRuleIndex = AvailableRulesListView.SelectedIndex;
+            var selectedRule = _viewModel.AvailableRules[selectedRuleIndex];
 
-            _viewModel.SelectedRule = selectedRule.Name;
-            UpdateConfigPanelFor(selectedRule);
+            UpdateSelectedRuleConfigs(selectedRule);
         }
 
-        private void UpdateConfigPanelFor(IRule rule)
+        private void UpdateSelectedRuleConfigs(IRule selectedRule)
         {
-            var currentConfigPanel = RuleDetails.Children.OfType<Panel>().FirstOrDefault(panel => panel.Name == _configPanelKey);
+            _viewModel.SelectedRule = selectedRule;
+            _viewModel.SelectedRuleConfigs.Clear();
+            _viewModel.SelectedRuleConfigs = CreateRuleConfigs(selectedRule);
 
-            var configPanelIndex = RuleDetails.Children.IndexOf(currentConfigPanel);
-            RuleDetails.Children.RemoveAt(configPanelIndex);
-
-            var newConfigPanel = (Panel)rule.Create();
-
-            newConfigPanel.Name = _configPanelKey;
-            newConfigPanel.Style = (Style)FindResource(_configPanelKey);
-
-            RuleDetails.Children.Insert(configPanelIndex, newConfigPanel);
+            RuleConfigs.ItemsSource = _viewModel.SelectedRuleConfigs;
         }
+
+        private ObservableCollection<RuleConfig> CreateRuleConfigs(IRule rule)
+        {
+            var configs = new ObservableCollection<RuleConfig>();
+
+            foreach (var prop in rule.ConfigurableProps)
+            {
+                var propInfo = rule.GetType().GetProperty(prop);
+                var propValue = propInfo.GetValue(rule, null);
+
+                var config = new RuleConfig
+                {
+                    Name = prop,
+                    Value = propValue.ToString(),
+                    Message = "Validation message"
+                };
+
+                configs.Add(config);
+            }
+
+            return configs;
+        }
+
+        private void SaveConfigsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var configLine = GenerateConfigLine(_viewModel.SelectedRule.Name, _viewModel.SelectedRuleConfigs);
+        }
+
+        private string GenerateConfigLine(string ruleName, ObservableCollection<RuleConfig> configs)
+        {
+            var builder = new StringBuilder();
+
+            builder.Append(ruleName);
+            builder.Append(':');
+
+            foreach (var config in configs)
+            {
+                builder.Append(config.Name);
+                builder.Append('=');
+                builder.Append(config.Value);
+                builder.Append(';');
+            }
+
+            var result = builder.ToString();
+            return result;
+        }
+
+        //private void UpdateAvailableRule(string ruleName, string configLine)
+        //{
+        //    var rule = _viewModel.AvailableRules.FirstOrDefault(rule => rule.Name == ruleName);
+        //    rule = (IRule)RuleFactory.CreateWith(configLine).Clone();
+
+        //    ApplyActiveRules();
+        //}
+
+        //private void UpdateActiveRule(string ruleName, string configLine)
+        //{
+        //    var rule = _viewModel.ActiveRules.FirstOrDefault(rule => rule.Name == ruleName);
+        //    rule = (IRule)RuleFactory.CreateWith(configLine).Clone();
+
+        //    ApplyActiveRules();
+        //}
+
+        //private void ApplyActiveRule(IRule rule)
+        //{
+        //    foreach (var previewFile in _viewModel.PreviewFiles)
+        //    {
+        //        string previewName = rule.Rename(previewFile.Name);
+        //        previewFile.Name = previewName;
+        //    }
+
+        //    PreviewFilesListView.ItemsSource = _viewModel.PreviewFiles;
+        //}
     }
 }
