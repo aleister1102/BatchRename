@@ -88,7 +88,7 @@
             </Style>
         </Grid.Resources>
 
-        <StackPanel Name="ToolbarStackPanel" Orientation="Horizontal" Grid.Row="0" Grid.ColumnSpan="2">
+        <StackPanel Name="ToolbarPanel" Orientation="Horizontal" Grid.Row="0" Grid.ColumnSpan="2">
             <Button Name="BrowseFilesButton"
                     Content="Browse files ..." Click="BrowseFilesButton_Click"
                     Style="{StaticResource RectangularButton}"
@@ -112,9 +112,9 @@
         </StackPanel>
 
         <StackPanel Name="RulePanel" Grid.Row="1" Grid.Column="0">
-            <StackPanel Name="RuleConfigPanel" Style="{StaticResource RuleConfig}">
-                <TextBlock Name="RuleTitle" FontWeight="Bold" FontSize="18" Text="{Binding Path=SelectedRule}"></TextBlock>
-                
+            <TextBlock Name="RuleTitle" FontWeight="Bold" FontSize="18" Width="520" Text="{Binding Path=SelectedRule}"></TextBlock>
+            <StackPanel Name="RuleDetails" Style="{StaticResource RuleConfig}">
+                <WrapPanel Name="RuleConfigs"></WrapPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <StackPanel Name="AvailableRulesPanel">

@@ -277,11 +277,18 @@ namespace BatchRename
             var selectedRule = (IRule)((ListView)sender).SelectedItem;
 
             _viewModel.SelectedRule = selectedRule.Name;
+            UpdateConfigPanelFor(selectedRule);
         }
 
         private void UpdateConfigPanelFor(IRule rule)
         {
-            RuleConfigPanel.Children.Add(rule.CreateConfigPanel());
+            var configPanel = RuleDetails.Children.OfType<Panel>().FirstOrDefault(panel => panel.Name == "RuleConfigs");
+
+            var configPanelIndex = RuleDetails.Children.IndexOf(configPanel);
+            RuleDetails.Children.RemoveAt(configPanelIndex);
+
+            var newConfigPanel = rule.CreateConfigPanel();
+            RuleDetails.Children.Insert(configPanelIndex, newConfigPanel);
         }
     }
 }
