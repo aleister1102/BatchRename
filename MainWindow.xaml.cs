@@ -35,12 +35,31 @@ namespace BatchRename
             public string Message { get; set; } = string.Empty;
         }
 
+        private class RuleStatus
+        {
+            public static bool Active { get; set; } = true;
+            public static bool Inactive { get; set; } = false;
+        }
+
+        public class RuleInfo : INotifyPropertyChanged
+        {
+            public IRule Rule { get; set; }
+            public bool State { get; set; } = false;
+
+            public event PropertyChangedEventHandler? PropertyChanged;
+
+            public void Activate() => State = RuleStatus.Active;
+
+            public void Deactivate() => State = RuleStatus.Inactive;
+
+            public bool IsActive() => State == RuleStatus.Active;
+        }
+
         private class ViewModel : INotifyPropertyChanged
         {
             public ObservableCollection<string> Presets { get; set; } = new();
 
-            public ObservableCollection<IRule> AvailableRules { get; set; } = new();
-            public ObservableCollection<IRule> ActiveRules { get; set; } = new();
+            public ObservableCollection<RuleInfo> RulesInfo { get; set; } = new();
 
             public ObservableCollection<File> OriginalFiles { get; set; } = new();
             public ObservableCollection<File> PreviewFiles { get; set; } = new();
@@ -60,20 +79,38 @@ namespace BatchRename
             _viewModel.Presets.Add("no presets");
             PresetComboBox.ItemsSource = _viewModel.Presets;
 
-            _viewModel.AvailableRules = LoadDefaultRulesFromPrototypes();
-            AvailableRulesListView.ItemsSource = _viewModel.AvailableRules;
-
-            ActiveRulesListView.ItemsSource = _viewModel.ActiveRules;
+            _viewModel.RulesInfo = InitDefaultRulesInfo();
+            RulesListView.ItemsSource = _viewModel.RulesInfo;
 
             OriginalFilesListView.ItemsSource = _viewModel.OriginalFiles;
 
             PreviewFilesListView.ItemsSource = _viewModel.PreviewFiles;
         }
 
-        private ObservableCollection<IRule> LoadDefaultRulesFromPrototypes()
+        private void RefreshRulesListView()
         {
-            var result = new ObservableCollection<IRule>(RuleFactory.GetPrototypes().Values.ToList());
-            return result;
+            RulesListView.ItemsSource = null;
+            RulesListView.ItemsSource = _viewModel.RulesInfo;
+        }
+
+        private void RefreshPreviewFilesListView()
+        {
+            PreviewFilesListView.ItemsSource = null;
+            PreviewFilesListView.ItemsSource = _viewModel.PreviewFiles;
+        }
+
+        private ObservableCollection<RuleInfo> InitDefaultRulesInfo()
+        {
+            var rulesPrototype = RuleFactory.GetPrototypes().Values.ToList();
+            var rulesInfo = new ObservableCollection<RuleInfo>();
+
+            foreach (var rulePrototype in rulesPrototype)
+            {
+                var ruleInfo = new RuleInfo { Rule = rulePrototype };
+                rulesInfo.Add(ruleInfo);
+            }
+
+            return rulesInfo;
         }
 
         private void BrowseFilesButton_Click(object sender, RoutedEventArgs e)
@@ -126,35 +163,33 @@ namespace BatchRename
 
         private void PresetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ResetActiveRules();
-
-            ResetAvailableRules();
-
             LoadSelectedPresets();
 
             ApplyActiveRules();
-        }
-
-        private void ResetActiveRules()
-        {
-            _viewModel.ActiveRules.Clear();
-            ActiveRulesListView.ItemsSource = _viewModel.ActiveRules;
-        }
-
-        private void ResetAvailableRules()
-        {
-            _viewModel.AvailableRules = LoadDefaultRulesFromPrototypes();
         }
 
         private void LoadSelectedPresets()
         {
             var presetPath = (string)PresetComboBox.SelectedItem;
 
+            ResetRules();
+
             if (System.IO.File.Exists(presetPath))
             {
                 var configLines = System.IO.File.ReadAllLines(presetPath);
                 UpdateRules(configLines);
             }
+            else
+            {
+                // TODO: handle error
+            }
+        }
+
+        private void ResetRules()
+        {
+            _viewModel.RulesInfo = InitDefaultRulesInfo();
+
+            RefreshRulesListView();
         }
 
         private void UpdateRules(string[] configLines)
@@ -162,30 +197,23 @@ namespace BatchRename
             foreach (var configLine in configLines)
             {
                 var newRule = RuleFactory.CreateWith(configLine);
-
-                UpdateActiveRule(newRule);
-                UpdateAvailableRules(newRule);
+                UpdateRule(newRule);
             }
 
-            RuleConfigs.ItemsSource = _viewModel.SelectedRuleConfigs;
+            RefreshRulesListView();
         }
 
-        private void UpdateActiveRule(IRule newRule)
+        private void UpdateRule(IRule update)
         {
-            if (_viewModel.ActiveRules.Contains(newRule) is false)
+            try
             {
-                _viewModel.ActiveRules.Add(newRule);
+                var ruleInfo = _viewModel.RulesInfo.First(ruleInfo => ruleInfo.Rule.Name == update.Name);
+                ruleInfo.Rule = (IRule)update.Clone();
+                ruleInfo.Activate();
             }
-        }
-
-        private void UpdateAvailableRules(IRule newRule)
-        {
-            for (int i = _viewModel.AvailableRules.Count - 1; i >= 0; i--)
+            catch (Exception e)
             {
-                if (_viewModel.AvailableRules[i].Name == newRule.Name)
-                {
-                    _viewModel.AvailableRules[i] = (IRule)newRule.Clone();
-                }
+                MessageBox.Show(e.Message);
             }
         }
 
@@ -193,91 +221,74 @@ namespace BatchRename
         {
             _viewModel.PreviewFiles = _viewModel.OriginalFiles.Clone();
 
-            foreach (var activeRule in _viewModel.ActiveRules)
+            foreach (var ruleInfo in _viewModel.RulesInfo)
             {
-                var ruleToBeApplied = (IRule)activeRule.Clone();
+                var ruleToBeApplied = (IRule)ruleInfo.Rule.Clone();
 
-                foreach (var previewFile in _viewModel.PreviewFiles)
+                if (ruleInfo.IsActive())
                 {
-                    string previewName = ruleToBeApplied.Rename(previewFile.Name);
-                    previewFile.Name = previewName;
+                    foreach (var previewFile in _viewModel.PreviewFiles)
+                    {
+                        string previewName = ruleToBeApplied.Rename(previewFile.Name);
+                        previewFile.Name = previewName;
+                    }
                 }
             }
 
-            PreviewFilesListView.ItemsSource = _viewModel.PreviewFiles;
-        }
-
-        private void DeactivateButton_Click(object sender, RoutedEventArgs e)
-        {
-            var senderButton = (Button)sender;
-            var currentRule = (IRule)senderButton.DataContext;
-
-            // ! Use regular for loop to avoid runtime exception
-            for (int i = _viewModel.ActiveRules.Count - 1; i >= 0; i--)
-            {
-                if (_viewModel.ActiveRules[i].Name == currentRule.Name)
-                {
-                    _viewModel.ActiveRules.RemoveAt(i);
-                }
-            }
-
-            ApplyActiveRules();
+            RefreshPreviewFilesListView();
         }
 
         private void ActivateButton_Click(object sender, RoutedEventArgs e)
         {
             var senderButton = (Button)sender;
-            var currentRule = (IRule)senderButton.DataContext;
+            var currentRule = (RuleInfo)senderButton.DataContext;
 
-            for (int i = _viewModel.AvailableRules.Count - 1; i >= 0; i--)
-            {
-                if (_viewModel.AvailableRules[i].Name == currentRule.Name &&
-                    _viewModel.ActiveRules.Any(activeRule => activeRule.Name == currentRule.Name) is false)
-                {
-                    var ruleToBeActivated = (IRule)_viewModel.AvailableRules[i].Clone();
+            currentRule.Activate();
 
-                    _viewModel.ActiveRules.Add(ruleToBeActivated);
-                }
-            }
+            RefreshRulesListView();
+            ApplyActiveRules();
+        }
 
+        private void DeactivateButton_Click(object sender, RoutedEventArgs e)
+        {
+            var senderButton = (Button)sender;
+            var currentRule = (RuleInfo)senderButton.DataContext;
+
+            currentRule.Deactivate();
+
+            RefreshRulesListView();
             ApplyActiveRules();
         }
 
         private void ActivateAllButton_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var rule in _viewModel.AvailableRules)
+            foreach (var ruleInfo in _viewModel.RulesInfo)
             {
-                if (_viewModel.ActiveRules.Any(activeRule => activeRule.Name == rule.Name) is false)
-                {
-                    var ruleToBeActivated = (IRule)rule.Clone();
-                    _viewModel.ActiveRules.Add(ruleToBeActivated);
-                }
-
-                ApplyActiveRules();
+                ruleInfo.Activate();
             }
+
+            RefreshRulesListView();
+            ApplyActiveRules();
         }
 
         private void DeactivateAllButton_Click(object sender, RoutedEventArgs e)
         {
-            ResetActiveRules();
+            foreach (var ruleInfo in _viewModel.RulesInfo)
+            {
+                ruleInfo.Deactivate();
+            }
 
+            RefreshRulesListView();
             ApplyActiveRules();
         }
 
         private void RefreshPresetsButton_Click(object sender, RoutedEventArgs e)
         {
-            ResetActiveRules();
-
             LoadSelectedPresets();
-
             ApplyActiveRules();
         }
 
-        private void SaveActiveRulesButton_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
-        // ! Reference: https://stackoverflow.com/questions/5662509/drag-and-drop-files-into-wpf
+        // Reference: https://stackoverflow.com/questions/5662509/drag-and-drop-files-into-wpf
         private void OriginalFilesListView_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -288,12 +299,12 @@ namespace BatchRename
             }
         }
 
-        private void AvailableRulesListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void SaveActiveRulesButton_Click(object sender, RoutedEventArgs e)
         {
-            var selectedRuleIndex = AvailableRulesListView.SelectedIndex;
-            var selectedRule = _viewModel.AvailableRules[selectedRuleIndex];
+        }
 
-            UpdateSelectedRuleConfigs(selectedRule);
+        private void RulesListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
         }
 
         private void UpdateSelectedRuleConfigs(IRule selectedRule)
@@ -327,11 +338,6 @@ namespace BatchRename
             return configs;
         }
 
-        private void SaveConfigsButton_Click(object sender, RoutedEventArgs e)
-        {
-            var configLine = GenerateConfigLine(_viewModel.SelectedRule.Name, _viewModel.SelectedRuleConfigs);
-        }
-
         private string GenerateConfigLine(string ruleName, ObservableCollection<RuleConfig> configs)
         {
             var builder = new StringBuilder();
@@ -350,32 +356,5 @@ namespace BatchRename
             var result = builder.ToString();
             return result;
         }
-
-        //private void UpdateAvailableRule(string ruleName, string configLine)
-        //{
-        //    var rule = _viewModel.AvailableRules.FirstOrDefault(rule => rule.Name == ruleName);
-        //    rule = (IRule)RuleFactory.CreateWith(configLine).Clone();
-
-        //    ApplyActiveRules();
-        //}
-
-        //private void UpdateActiveRule(string ruleName, string configLine)
-        //{
-        //    var rule = _viewModel.ActiveRules.FirstOrDefault(rule => rule.Name == ruleName);
-        //    rule = (IRule)RuleFactory.CreateWith(configLine).Clone();
-
-        //    ApplyActiveRules();
-        //}
-
-        //private void ApplyActiveRule(IRule rule)
-        //{
-        //    foreach (var previewFile in _viewModel.PreviewFiles)
-        //    {
-        //        string previewName = rule.Rename(previewFile.Name);
-        //        previewFile.Name = previewName;
-        //    }
-
-        //    PreviewFilesListView.ItemsSource = _viewModel.PreviewFiles;
-        //}
     }
 }

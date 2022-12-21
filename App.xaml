@@ -26,6 +26,12 @@
             <Setter Property="VerticalAlignment" Value="Center"></Setter>
         </Style>
 
+        <Style x:Key="RuleTitle">
+            <Setter Property="TextBlock.FontWeight" Value="Bold" />
+            <Setter Property="TextBlock.FontSize" Value="18" />
+            <Setter Property="TextBlock.Width" Value="520" />
+        </Style>
+
         <Style x:Key="RuleConfigs">
             <Setter Property="Grid.Width" Value="520" />
             <Setter Property="Grid.Height" Value="140" />
@@ -55,13 +61,14 @@
         </Style>
 
         <Style x:Key="RuleListView">
-            <Setter Property="ListView.Width" Value="240" />
+            <Setter Property="ListView.Width" Value="400" />
             <Setter Property="ListView.Height" Value="400" />
             <Setter Property="ListView.Margin" Value="20 0" />
+            <Setter Property="ListView.HorizontalAlignment" Value="Center" />
         </Style>
 
         <Style x:Key="RuleRow">
-            <Setter Property="Grid.Width" Value="220" />
+            <Setter Property="Grid.Width" Value="380" />
             <Setter Property="Grid.Background" Value="#4cc2ff" />
         </Style>
 
@@ -69,6 +76,7 @@
             <Setter Property="TextBlock.Padding" Value="8 0" />
             <Setter Property="TextBlock.FontSize" Value="14" />
             <Setter Property="TextBlock.Foreground" Value="#fff" />
+            <Setter Property="TextBlock.VerticalAlignment" Value="Center" />
         </Style>
 
         <Style x:Key="FileListView">
