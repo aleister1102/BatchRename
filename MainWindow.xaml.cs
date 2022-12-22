@@ -394,6 +394,7 @@ namespace BatchRename
             {
                 string configLine = GenerateConfigLine(selectedRule);
                 var rule = RuleFactory.CreateWith(configLine);
+
                 UpdateRule(rule);
                 ApplyActiveRules();
             }
@@ -421,18 +422,49 @@ namespace BatchRename
             return result;
         }
 
-        private void Grid_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void RuleGrid_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             var grid = (Grid)sender;
             var ruleName = ((RuleInfo)grid.DataContext).Rule.Name;
-            var ruleIndex = _viewModel.RulesInfo.ToList().FindIndex(ruleInfo => ruleInfo.Rule.Name == ruleName);
+            int ruleIndex = _viewModel.RulesInfo.ToList().FindIndex(ruleInfo => ruleInfo.Rule.Name == ruleName);
 
             _selectedRuleIndex = ruleIndex;
             RestoreSelectedRule();
         }
 
-        private void SaveActiveRulesButton_Click(object sender, RoutedEventArgs e)
+        private async void SaveActiveRulesButton_Click(object sender, RoutedEventArgs e)
         {
+            var savingScreen = new SaveFileDialog()
+            {
+                DefaultExt = ".txt",
+                AddExtension = true,
+                Filter = "Text Files|*.txt|Markdown|*.md|All Files|*.*"
+            };
+
+            if (savingScreen.ShowDialog() == true)
+            {
+                string path = savingScreen.FileName;
+
+                List<string> configLines = GenerateConfigLinesForActiveRules();
+
+                await System.IO.File.WriteAllLinesAsync(path, configLines);
+            }
+        }
+
+        private List<string> GenerateConfigLinesForActiveRules()
+        {
+            var configLines = new List<string>();
+
+            foreach (var ruleInfo in _viewModel.RulesInfo)
+            {
+                if (ruleInfo.IsActive())
+                {
+                    string configLine = GenerateConfigLine(ruleInfo);
+                    configLines.Add(configLine);
+                }
+            }
+
+            return configLines;
         }
     }
 }

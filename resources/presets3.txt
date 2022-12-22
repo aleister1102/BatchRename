@@ -1,0 +1,3 @@
+AddCounter:Start=1;Step=1;NumberOfDigits=3;
+AddPrefix:Prefix=In stock;
+AddSuffix:Suffix=Premium vip pro 123;

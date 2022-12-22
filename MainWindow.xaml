@@ -98,8 +98,10 @@
                           IsSynchronizedWithCurrentItem="True">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Grid Style="{StaticResource RuleRow}"
-                                  UIElement.PreviewMouseDown="Grid_PreviewMouseDown">
+                            <Grid 
+                                Name ="RuleGrid"
+                                Style="{StaticResource RuleRow}"
+                                UIElement.PreviewMouseDown="RuleGrid_PreviewMouseDown">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="3*" />
                                     <ColumnDefinition Width="*" />
