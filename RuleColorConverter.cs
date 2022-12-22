@@ -16,8 +16,6 @@ namespace BatchRename
         {
             var rule = (RuleInfo)value;
 
-            Debug.WriteLine(rule.State);
-
             if (rule.IsActive())
             {
                 return "#fff";

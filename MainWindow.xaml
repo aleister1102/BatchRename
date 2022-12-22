@@ -53,10 +53,10 @@
         </StackPanel>
 
         <StackPanel Name="RulePanel" Grid.Row="1" Grid.Column="0">
-            <TextBlock Name="RuleTitle" Style="{StaticResource RuleTitle}"
-                       Text="{Binding SelectedRule.Name, Converter={StaticResource PascalCaseToRegular}}"></TextBlock>
+            <TextBlock Name="SelectedRuleTitle" Style="{StaticResource RuleTitle}"
+                       Text="{Binding Path=Rule.Name, Converter={StaticResource PascalCaseToRegular}}"></TextBlock>
 
-            <ItemsControl Name="RuleConfigs"
+            <ItemsControl Name="SelectedRuleConfigs"
                           Style="{StaticResource RuleConfigs}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -80,7 +80,7 @@
                     HorizontalAlignment="Center" Margin="0 10"
                     Click="SaveConfigsButton_Click">Save configs</Button>
 
-            <StackPanel Name="AvailableRulesPanel" HorizontalAlignment="Center" Margin="0 5">
+            <StackPanel Name="RulesPanel" HorizontalAlignment="Center" Margin="0 5">
                 <StackPanel Orientation="Horizontal" Width="400">
                     <TextBlock Style="{StaticResource ListViewTitle}">Available rules</TextBlock>
                     <Button Name="ActivateAllButton"
@@ -92,12 +92,14 @@
                 </StackPanel>
 
                 <ListView Name="RulesListView"
-                              Style="{StaticResource RuleListView}"
-                              SelectionMode="Single"
-                              SelectionChanged="RulesListView_SelectionChanged">
+                          Style="{StaticResource RuleListView}"
+                          SelectionMode="Single"
+                          SelectionChanged="RulesListView_SelectionChanged"
+                          IsSynchronizedWithCurrentItem="True">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Grid Style="{StaticResource RuleRow}">
+                            <Grid Style="{StaticResource RuleRow}"
+                                  UIElement.PreviewMouseDown="Grid_PreviewMouseDown">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="3*" />
                                     <ColumnDefinition Width="*" />
@@ -108,9 +110,9 @@
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Name="RuleTextBlock"
-                                               Text="{Binding Rule.Name, Converter={StaticResource PascalCaseToRegular}}"
-                                               Grid.Column="0" Style="{StaticResource RuleName}"
-                                               Foreground="{Binding Path=.,Converter={StaticResource RuleColorConverter}}" />
+                                           Text="{Binding Rule.Name, Converter={StaticResource PascalCaseToRegular}}"
+                                           Grid.Column="0" Style="{StaticResource RuleName}"
+                                           Foreground="{Binding Path=.,Converter={StaticResource RuleColorConverter}}" />
                                 <Button Content="+"  Grid.Column="1" Click="ActivateButton_Click" Style="{StaticResource SquareButton}" />
                                 <Button Content="-"  Grid.Column="2" Click="DeactivateButton_Click" Style="{StaticResource SquareButton}" />
                             </Grid>

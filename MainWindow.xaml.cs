@@ -4,19 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Windows;
-using System.Windows.Automation;
+using System.Windows.Automation.Text;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Xml.Serialization;
 
 namespace BatchRename
 {
@@ -28,11 +23,18 @@ namespace BatchRename
             RuleFactory.Instance();
         }
 
-        private class RuleConfig
+        public class RuleConfig
         {
             public string Name { get; set; } = string.Empty;
             public string Value { get; set; } = string.Empty;
             public string Message { get; set; } = string.Empty;
+
+            public RuleConfig(string name, string value, string message = "Validation message")
+            {
+                Name = name;
+                Value = value;
+                Message = message;
+            }
         }
 
         private class RuleStatus
@@ -45,6 +47,7 @@ namespace BatchRename
         {
             public IRule Rule { get; set; }
             public bool State { get; set; } = false;
+            public ObservableCollection<RuleConfig> Configs { get; set; } = new();
 
             public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -64,18 +67,16 @@ namespace BatchRename
             public ObservableCollection<File> OriginalFiles { get; set; } = new();
             public ObservableCollection<File> PreviewFiles { get; set; } = new();
 
-            public IRule SelectedRule { get; set; }
-            public ObservableCollection<RuleConfig> SelectedRuleConfigs { get; set; } = new();
+            public RuleInfo SelectedRule { get; set; } = new();
 
             public event PropertyChangedEventHandler? PropertyChanged;
         }
 
         private readonly ViewModel _viewModel = new();
+        private int _selectedRuleIndex;
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            DataContext = _viewModel;
-
             _viewModel.Presets.Add("no presets");
             PresetComboBox.ItemsSource = _viewModel.Presets;
 
@@ -83,8 +84,10 @@ namespace BatchRename
             RulesListView.ItemsSource = _viewModel.RulesInfo;
 
             OriginalFilesListView.ItemsSource = _viewModel.OriginalFiles;
-
             PreviewFilesListView.ItemsSource = _viewModel.PreviewFiles;
+
+            SelectedRuleTitle.DataContext = _viewModel.SelectedRule;
+            SelectedRuleConfigs.ItemsSource = _viewModel.SelectedRule.Configs;
         }
 
         private void RefreshRulesListView()
@@ -99,9 +102,21 @@ namespace BatchRename
             PreviewFilesListView.ItemsSource = _viewModel.PreviewFiles;
         }
 
+        private void RefreshSelectedRuleTitle()
+        {
+            SelectedRuleTitle.DataContext = null;
+            SelectedRuleTitle.DataContext = _viewModel.SelectedRule;
+        }
+
+        private void RefreshSelectedRuleConfigs()
+        {
+            SelectedRuleConfigs.ItemsSource = null;
+            SelectedRuleConfigs.ItemsSource = _viewModel.SelectedRule.Configs;
+        }
+
         private ObservableCollection<RuleInfo> InitDefaultRulesInfo()
         {
-            var rulesPrototype = RuleFactory.GetPrototypes().Values.ToList();
+            List<IRule> rulesPrototype = RuleFactory.GetPrototypes().Values.ToList();
             var rulesInfo = new ObservableCollection<RuleInfo>();
 
             foreach (var rulePrototype in rulesPrototype)
@@ -129,7 +144,7 @@ namespace BatchRename
         {
             foreach (var filePath in filePaths)
             {
-                var fileName = Path.GetFileName(filePath);
+                string fileName = Path.GetFileName(filePath);
 
                 if (_viewModel.OriginalFiles.Any(file => file.Name == fileName) is false)
                 {
@@ -150,7 +165,7 @@ namespace BatchRename
 
         private void GetPresetsFrom(OpenFileDialog browsingScreen)
         {
-            var presetPaths = browsingScreen.FileNames;
+            string[] presetPaths = browsingScreen.FileNames;
 
             foreach (var presetPath in presetPaths)
             {
@@ -165,6 +180,8 @@ namespace BatchRename
         {
             LoadSelectedPresets();
 
+            RestoreSelectedRule();
+
             ApplyActiveRules();
         }
 
@@ -176,7 +193,7 @@ namespace BatchRename
 
             if (System.IO.File.Exists(presetPath))
             {
-                var configLines = System.IO.File.ReadAllLines(presetPath);
+                string[] configLines = System.IO.File.ReadAllLines(presetPath);
                 UpdateRules(configLines);
             }
             else
@@ -196,7 +213,7 @@ namespace BatchRename
         {
             foreach (var configLine in configLines)
             {
-                var newRule = RuleFactory.CreateWith(configLine);
+                IRule newRule = RuleFactory.CreateWith(configLine);
                 UpdateRule(newRule);
             }
 
@@ -207,13 +224,28 @@ namespace BatchRename
         {
             try
             {
-                var ruleInfo = _viewModel.RulesInfo.First(ruleInfo => ruleInfo.Rule.Name == update.Name);
+                RuleInfo ruleInfo = _viewModel.RulesInfo.First(ruleInfo => ruleInfo.Rule.Name == update.Name);
                 ruleInfo.Rule = (IRule)update.Clone();
-                ruleInfo.Activate();
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
+            }
+        }
+
+        private void ActivateAllRules()
+        {
+            foreach (var ruleInfo in _viewModel.RulesInfo)
+            {
+                ruleInfo.Activate();
+            }
+        }
+
+        private void DeactivateAllRules()
+        {
+            foreach (var ruleInfo in _viewModel.RulesInfo)
+            {
+                ruleInfo.Deactivate();
             }
         }
 
@@ -262,22 +294,14 @@ namespace BatchRename
 
         private void ActivateAllButton_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var ruleInfo in _viewModel.RulesInfo)
-            {
-                ruleInfo.Activate();
-            }
-
+            ActivateAllRules();
             RefreshRulesListView();
             ApplyActiveRules();
         }
 
         private void DeactivateAllButton_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var ruleInfo in _viewModel.RulesInfo)
-            {
-                ruleInfo.Deactivate();
-            }
-
+            DeactivateAllRules();
             RefreshRulesListView();
             ApplyActiveRules();
         }
@@ -299,21 +323,39 @@ namespace BatchRename
             }
         }
 
-        private void SaveActiveRulesButton_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
         private void RulesListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (RulesListView.SelectedIndex >= 0)
+                _selectedRuleIndex = RulesListView.SelectedIndex;
+
+            UpdateSelectedRule();
         }
 
-        private void UpdateSelectedRuleConfigs(IRule selectedRule)
+        private void UpdateSelectedRule()
+        {
+            var selectedRule = (RuleInfo)RulesListView.SelectedItem;
+
+            if (selectedRule is not null)
+            {
+                UpdateSelectedRuleTitle(selectedRule);
+                UpdateSelectedRuleConfigs(selectedRule);
+            }
+        }
+
+        private void UpdateSelectedRuleTitle(RuleInfo selectedRule)
         {
             _viewModel.SelectedRule = selectedRule;
-            _viewModel.SelectedRuleConfigs.Clear();
-            _viewModel.SelectedRuleConfigs = CreateRuleConfigs(selectedRule);
 
-            RuleConfigs.ItemsSource = _viewModel.SelectedRuleConfigs;
+            RefreshSelectedRuleTitle();
+        }
+
+        private void UpdateSelectedRuleConfigs(RuleInfo selectedRule)
+        {
+            ObservableCollection<RuleConfig> ruleConfigs = CreateRuleConfigs(selectedRule.Rule);
+
+            _viewModel.SelectedRule.Configs = ruleConfigs;
+
+            RefreshSelectedRuleConfigs();
         }
 
         private ObservableCollection<RuleConfig> CreateRuleConfigs(IRule rule)
@@ -322,15 +364,8 @@ namespace BatchRename
 
             foreach (var prop in rule.ConfigurableProps)
             {
-                var propInfo = rule.GetType().GetProperty(prop);
-                var propValue = propInfo.GetValue(rule, null);
-
-                var config = new RuleConfig
-                {
-                    Name = prop,
-                    Value = propValue.ToString(),
-                    Message = "Validation message"
-                };
+                var propValue = GetRuleProp(rule, prop);
+                var config = new RuleConfig(prop, propValue);
 
                 configs.Add(config);
             }
@@ -338,14 +373,43 @@ namespace BatchRename
             return configs;
         }
 
-        private string GenerateConfigLine(string ruleName, ObservableCollection<RuleConfig> configs)
+        private string GetRuleProp(IRule rule, string prop)
+        {
+            var propInfo = rule.GetType().GetProperty(prop);
+            var propValue = propInfo!.GetValue(rule, null);
+            return propValue!.ToString()!;
+        }
+
+        private void RestoreSelectedRule()
+        {
+            RulesListView.SelectedIndex = _selectedRuleIndex;
+            UpdateSelectedRule();
+        }
+
+        private void SaveConfigsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedRule = (RuleInfo)RulesListView.SelectedItem;
+
+            if (selectedRule is not null)
+            {
+                string configLine = GenerateConfigLine(selectedRule);
+                var rule = RuleFactory.CreateWith(configLine);
+                UpdateRule(rule);
+                ApplyActiveRules();
+            }
+        }
+
+        private string GenerateConfigLine(RuleInfo ruleInfo)
         {
             var builder = new StringBuilder();
+
+            var ruleName = ruleInfo.Rule.Name;
+            var ruleConfigs = ruleInfo.Configs;
 
             builder.Append(ruleName);
             builder.Append(':');
 
-            foreach (var config in configs)
+            foreach (var config in ruleConfigs)
             {
                 builder.Append(config.Name);
                 builder.Append('=');
@@ -355,6 +419,20 @@ namespace BatchRename
 
             var result = builder.ToString();
             return result;
+        }
+
+        private void Grid_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var grid = (Grid)sender;
+            var ruleName = ((RuleInfo)grid.DataContext).Rule.Name;
+            var ruleIndex = _viewModel.RulesInfo.ToList().FindIndex(ruleInfo => ruleInfo.Rule.Name == ruleName);
+
+            _selectedRuleIndex = ruleIndex;
+            RestoreSelectedRule();
+        }
+
+        private void SaveActiveRulesButton_Click(object sender, RoutedEventArgs e)
+        {
         }
     }
 }
