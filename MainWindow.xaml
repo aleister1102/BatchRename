@@ -59,7 +59,7 @@
             </Viewbox>
 
             <Button Name="RenameButton"
-                    Content="Rename"
+                    Content="Rename" Click="RenameButton_Click"
                     Style="{StaticResource RectangularButton}"
                     Margin="15 0 10 0" />
         </StackPanel>

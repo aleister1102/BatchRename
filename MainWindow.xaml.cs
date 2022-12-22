@@ -473,5 +473,28 @@ namespace BatchRename
             RefreshRulesListView();
             ApplyActiveRules();
         }
+
+        private void RenameButton_Click(object sender, RoutedEventArgs e)
+        {
+            RenameFilesWithActiveRules();
+        }
+
+        private void RenameFilesWithActiveRules()
+        {
+            foreach (var ruleInfo in _viewModel.RulesInfo)
+            {
+                if (!ruleInfo.IsActive()) continue;
+                var ruleToBeApplied = (IRule)(ruleInfo.Rule).Clone();
+
+                foreach (var file in _viewModel.Files)
+                {
+                    string newName = ruleToBeApplied.Rename(file.Name);
+                    string path = Path.GetDirectoryName(file.Path)!;
+                    string newPath = $@"{path}\{newName}";
+
+                    System.IO.File.Move(file.Path, newPath);
+                }
+            }
+        }
     }
 }
