@@ -19,6 +19,12 @@
             <Setter Property="Button.HorizontalAlignment" Value="Center"></Setter>
         </Style>
 
+        <Style TargetType="Viewbox">
+            <Setter Property="Height" Value="34"></Setter>
+            <Setter Property="Margin" Value="10 0" />
+            <Setter Property="HorizontalAlignment" Value="Left"></Setter>
+        </Style>
+
         <Style TargetType="ComboBox">
             <Setter Property="Width" Value="100" />
             <Setter Property="Height" Value="30" />

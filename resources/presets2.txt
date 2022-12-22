@@ -1,1 +1,3 @@
-﻿ToLowercaseWithoutSpace
+AddCounter:Start=0;Step=2;NumberOfDigits=3;
+ChangeExtension:NewExtension=.txt;
+ToLowercaseWithoutSpace:

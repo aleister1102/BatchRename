@@ -43,13 +43,18 @@ namespace BatchRename
             public static bool Inactive { get; set; } = false;
         }
 
-        public class RuleInfo : INotifyPropertyChanged
+        public class RuleInfo : INotifyPropertyChanged, ICloneable
         {
             public IRule Rule { get; set; }
             public bool State { get; set; } = false;
             public ObservableCollection<RuleConfig> Configs { get; set; } = new();
 
             public event PropertyChangedEventHandler? PropertyChanged;
+
+            public object Clone()
+            {
+                return MemberwiseClone();
+            }
 
             public void Activate() => State = RuleStatus.Active;
 
@@ -64,8 +69,7 @@ namespace BatchRename
 
             public ObservableCollection<RuleInfo> RulesInfo { get; set; } = new();
 
-            public ObservableCollection<File> OriginalFiles { get; set; } = new();
-            public ObservableCollection<File> PreviewFiles { get; set; } = new();
+            public ObservableCollection<File> Files { get; set; } = new();
 
             public RuleInfo SelectedRule { get; set; } = new();
 
@@ -80,11 +84,12 @@ namespace BatchRename
             _viewModel.Presets.Add("no presets");
             PresetComboBox.ItemsSource = _viewModel.Presets;
 
+            AlsoActivateCheckBox.IsChecked = true;
+
             _viewModel.RulesInfo = InitDefaultRulesInfo();
             RulesListView.ItemsSource = _viewModel.RulesInfo;
 
-            OriginalFilesListView.ItemsSource = _viewModel.OriginalFiles;
-            PreviewFilesListView.ItemsSource = _viewModel.PreviewFiles;
+            OriginalFilesListView.ItemsSource = _viewModel.Files;
 
             SelectedRuleTitle.DataContext = _viewModel.SelectedRule;
             SelectedRuleConfigs.ItemsSource = _viewModel.SelectedRule.Configs;
@@ -99,7 +104,7 @@ namespace BatchRename
         private void RefreshPreviewFilesListView()
         {
             PreviewFilesListView.ItemsSource = null;
-            PreviewFilesListView.ItemsSource = _viewModel.PreviewFiles;
+            PreviewFilesListView.ItemsSource = _viewModel.Files;
         }
 
         private void RefreshSelectedRuleTitle()
@@ -146,9 +151,9 @@ namespace BatchRename
             {
                 string fileName = Path.GetFileName(filePath);
 
-                if (_viewModel.OriginalFiles.Any(file => file.Name == fileName) is false)
+                if (_viewModel.Files.Any(file => file.Name == fileName) is false)
                 {
-                    _viewModel.OriginalFiles.Add(new File() { Path = filePath, Name = fileName });
+                    _viewModel.Files.Add(new File() { Path = filePath, Name = fileName });
                 }
             }
         }
@@ -214,18 +219,20 @@ namespace BatchRename
             foreach (var configLine in configLines)
             {
                 IRule newRule = RuleFactory.CreateWith(configLine);
-                UpdateRule(newRule);
+                UpdateRule(newRule, AlsoActivateCheckBox.IsChecked);
             }
 
             RefreshRulesListView();
         }
 
-        private void UpdateRule(IRule update)
+        private void UpdateRule(IRule update, bool? alsoActivate = false)
         {
             try
             {
                 RuleInfo ruleInfo = _viewModel.RulesInfo.First(ruleInfo => ruleInfo.Rule.Name == update.Name);
                 ruleInfo.Rule = (IRule)update.Clone();
+
+                if (alsoActivate == true) ruleInfo.Activate();
             }
             catch (Exception e)
             {
@@ -251,21 +258,8 @@ namespace BatchRename
 
         private void ApplyActiveRules()
         {
-            _viewModel.PreviewFiles = _viewModel.OriginalFiles.Clone();
-
-            foreach (var ruleInfo in _viewModel.RulesInfo)
-            {
-                var ruleToBeApplied = (IRule)ruleInfo.Rule.Clone();
-
-                if (ruleInfo.IsActive())
-                {
-                    foreach (var previewFile in _viewModel.PreviewFiles)
-                    {
-                        string previewName = ruleToBeApplied.Rename(previewFile.Name);
-                        previewFile.Name = previewName;
-                    }
-                }
-            }
+            var converter = (PreviewRenameConverter)FindResource("PreviewRenameConverter");
+            converter.RulesInfo = _viewModel.RulesInfo.Clone();
 
             RefreshPreviewFilesListView();
         }
@@ -465,6 +459,19 @@ namespace BatchRename
             }
 
             return configLines;
+        }
+
+        private void AlsoActivateCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            LoadSelectedPresets();
+            ApplyActiveRules();
+        }
+
+        private void AlsoActivateCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            DeactivateAllRules();
+            RefreshRulesListView();
+            ApplyActiveRules();
         }
     }
 }

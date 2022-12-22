@@ -11,7 +11,7 @@ using static BatchRename.MainWindow;
 
 namespace BatchRename
 {
-    internal class PreviewNameConverter : IValueConverter
+    internal class PreviewRenameConverter : IValueConverter
     {
         public ObservableCollection<RuleInfo> RulesInfo { get; set; } = new();
 

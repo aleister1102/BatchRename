@@ -12,7 +12,7 @@
         <local:PathToNameConverter x:Key="PathToNameConverter" />
         <local:PascalCaseToRegularConverter x:Key="PascalCaseToRegular" />
         <local:RuleColorConverter x:Key="RuleColorConverter" />
-        <local:PreviewNameConverter x:Key="PreviewNameConverter" />
+        <local:PreviewRenameConverter x:Key="PreviewRenameConverter" />
     </Window.Resources>
 
     <Grid>
@@ -50,6 +50,18 @@
             <Button Name="SaveActiveRulesButton" Style="{StaticResource SquareButton}" Click="SaveActiveRulesButton_Click">
                 <Image Source="images/save.png" />
             </Button>
+
+            <Viewbox>
+                <CheckBox Name="AlsoActivateCheckBox"
+                          IsChecked="False"
+                          Checked="AlsoActivateCheckBox_Checked"
+                          Unchecked="AlsoActivateCheckBox_Unchecked" />
+            </Viewbox>
+
+            <Button Name="RenameButton"
+                    Content="Rename"
+                    Style="{StaticResource RectangularButton}"
+                    Margin="15 0 10 0" />
         </StackPanel>
 
         <StackPanel Name="RulePanel" Grid.Row="1" Grid.Column="0">
@@ -98,7 +110,7 @@
                           IsSynchronizedWithCurrentItem="True">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Grid 
+                            <Grid
                                 Name ="RuleGrid"
                                 Style="{StaticResource RuleRow}"
                                 UIElement.PreviewMouseDown="RuleGrid_PreviewMouseDown">
@@ -142,7 +154,7 @@
                 <ListView Name="PreviewFilesListView" Style="{StaticResource FileListView}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Name, Converter={StaticResource PreviewNameConverter}}"></TextBlock>
+                            <TextBlock Text="{Binding Name, Converter={StaticResource PreviewRenameConverter}}"></TextBlock>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
