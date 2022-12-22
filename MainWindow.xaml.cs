@@ -44,6 +44,8 @@ namespace BatchRename
             internal void Decrement() => _counter--;
 
             public int GetValue() => _counter;
+
+            public void Reset() => _counter = 0;
         }
 
         public class RuleConfig
@@ -221,9 +223,10 @@ namespace BatchRename
 
         private void LoadSelectedPresets()
         {
-            var presetPath = (string)PresetComboBox.SelectedItem;
-
+            _ruleCounter.Reset();
             ResetRules();
+
+            var presetPath = (string)PresetComboBox.SelectedItem;
 
             if (System.IO.File.Exists(presetPath))
             {
@@ -239,7 +242,6 @@ namespace BatchRename
         private void ResetRules()
         {
             _viewModel.RulesInfo = InitDefaultRulesInfo();
-
             RefreshRulesListView();
         }
 
@@ -261,7 +263,11 @@ namespace BatchRename
                 RuleInfo ruleInfo = _viewModel.RulesInfo.First(ruleInfo => ruleInfo.Rule.Name == update.Name);
                 ruleInfo.Rule = (IRule)update.Clone();
 
-                if (alsoActivate == true) ruleInfo.Activate();
+                if (alsoActivate == true)
+                {
+                    IncreaseOrder(ruleInfo);
+                    ruleInfo.Activate();
+                }
             }
             catch (Exception e)
             {
@@ -273,7 +279,11 @@ namespace BatchRename
         {
             foreach (var ruleInfo in _viewModel.RulesInfo)
             {
-                ruleInfo.Activate();
+                if (ruleInfo.IsActive() is false)
+                {
+                    IncreaseOrder(ruleInfo);
+                    ruleInfo.Activate();
+                }
             }
         }
 
@@ -281,7 +291,11 @@ namespace BatchRename
         {
             foreach (var ruleInfo in _viewModel.RulesInfo)
             {
-                ruleInfo.Deactivate();
+                if (ruleInfo.IsActive())
+                {
+                    DecreaseOrder(ruleInfo);
+                    ruleInfo.Deactivate();
+                }
             }
         }
 
