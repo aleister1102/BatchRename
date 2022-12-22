@@ -37,5 +37,12 @@ namespace BatchRename
 
             return result;
         }
+
+        public static ObservableCollection<RuleInfo> Sort(this ObservableCollection<RuleInfo> collection)
+        {
+            var result = new ObservableCollection<RuleInfo>(collection.OrderBy(ruleInfo => ruleInfo.Order));
+
+            return result;
+        }
     }
 }

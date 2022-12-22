@@ -21,7 +21,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="60" />
+            <RowDefinition Height="80" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -66,6 +66,17 @@
                     Content="Rename" Click="RenameButton_Click"
                     Style="{StaticResource RectangularButton}"
                     Margin="15 0 10 0" />
+
+            <Button Name="RenameAndCopyButton"
+                    Click="RenameAndCopyButton_Click"
+                    Style="{StaticResource RectangularButton}"
+                    Margin="15 0 10 0">
+                <TextBlock TextWrapping="Wrap"
+                           FontSize="12"
+                           TextAlignment="Center">
+                    Rename and copy to a new folder
+                </TextBlock>
+            </Button>
         </StackPanel>
 
         <StackPanel Name="RulePanel" Grid.Row="1" Grid.Column="0">

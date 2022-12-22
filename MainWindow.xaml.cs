@@ -1,13 +1,23 @@
-﻿using BatchRenamePlugins;
+﻿using System.Text.RegularExpressions;
+
+using BatchRenamePlugins;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
+using System.Security.Cryptography.Xml;
+using System.Security.Principal;
 using System.Text;
+
+using System.Text.RegularExpressions;
+
 using System.Windows;
 using System.Windows.Controls;
 
@@ -106,6 +116,7 @@ namespace BatchRename
         private readonly ViewModel _viewModel = new();
         private int _selectedRuleIndex;
         private RuleCounter _ruleCounter = RuleCounter.GetInstance();
+        private string _moveToPath = string.Empty;
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -320,7 +331,7 @@ namespace BatchRename
         private void ApplyActiveRules()
         {
             var activeRulesInfo = _viewModel.RulesInfo.Clone();
-            var sortedAvtiveRulesInfo = new ObservableCollection<RuleInfo>(activeRulesInfo.OrderBy(ruleInfo => ruleInfo.Order));
+            var sortedAvtiveRulesInfo = activeRulesInfo.Sort();
 
             var converter = (PreviewRenameConverter)FindResource("PreviewRenameConverter");
             converter.RulesInfo = sortedAvtiveRulesInfo;
@@ -569,25 +580,81 @@ namespace BatchRename
 
         private void RenameButton_Click(object sender, RoutedEventArgs e)
         {
-            RenameFilesWithActiveRules();
+            RenameFilesWithActiveRules(RenameFile);
         }
 
-        private void RenameFilesWithActiveRules()
+        private void RenameFilesWithActiveRules(Rename renameAction)
         {
-            foreach (var ruleInfo in _viewModel.RulesInfo)
+            var rulesInfo = _viewModel.RulesInfo.Clone();
+            var sortedRulesInfo = rulesInfo.Sort();
+
+            foreach (var file in _viewModel.Files)
             {
-                if (!ruleInfo.IsActive()) continue;
-                var ruleToBeApplied = (IRule)(ruleInfo.Rule).Clone();
+                string filePath = file.Path;
+                string fileName = file.Name;
+                string fileDirectory = ChangeDirectory(filePath);
 
-                foreach (var file in _viewModel.Files)
+                foreach (var ruleInfo in sortedRulesInfo)
                 {
-                    string newName = ruleToBeApplied.Rename(file.Name);
-                    string path = Path.GetDirectoryName(file.Path)!;
-                    string newPath = $@"{path}\{newName}";
+                    if (ruleInfo.IsActive())
+                    {
+                        fileName = ruleInfo.Rule.Rename(fileName);
+                        filePath = Path.Combine(fileDirectory, fileName);
+                    }
+                }
 
-                    System.IO.File.Move(file.Path, newPath);
+                renameAction.Invoke(file.Path, filePath);
+            }
+        }
+
+        private string ChangeDirectory(string filePath)
+        {
+            string newDirectory = Path.GetDirectoryName(filePath)!;
+
+            if (_moveToPath != string.Empty)
+            {
+                newDirectory = _moveToPath;
+            }
+
+            return newDirectory;
+        }
+
+        private delegate void Rename(string currentName, string newName);
+
+        private void RenameFile(string currentName, string newName)
+        {
+            try
+            {
+                System.IO.File.Move(currentName, newName);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
+
+        private void RenameAndCopyFile(string currentName, string newName)
+        {
+            try
+            {
+                if (System.IO.File.Exists(newName) is false)
+                {
+                    System.IO.File.Copy(currentName, newName);
                 }
             }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
+
+        private void RenameAndCopyButton_Click(object sender, RoutedEventArgs e)
+        {
+            var browsingScreen = new CommonOpenFileDialog() { Multiselect = false, IsFolderPicker = true };
+
+            _moveToPath = browsingScreen.ShowDialog() == CommonFileDialogResult.Ok ? browsingScreen.FileName : string.Empty;
+
+            RenameFilesWithActiveRules(RenameAndCopyFile);
         }
     }
 }
