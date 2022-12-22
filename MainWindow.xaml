@@ -52,10 +52,10 @@
             </Button>
 
             <Viewbox>
-                <CheckBox Name="AlsoActivateCheckBox"
+                <CheckBox Name="AlsoActivateActiveRulesCheckBox"
                           IsChecked="False"
-                          Checked="AlsoActivateCheckBox_Checked"
-                          Unchecked="AlsoActivateCheckBox_Unchecked" />
+                          Checked="AlsoActivateActiveRulesCheckBox_Checked"
+                          Unchecked="AlsoActivateActiveRulesCheckBox_Unchecked" />
             </Viewbox>
 
             <Button Name="RenameButton"
@@ -115,7 +115,8 @@
                                 Style="{StaticResource RuleRow}"
                                 UIElement.PreviewMouseDown="RuleGrid_PreviewMouseDown">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="3*" />
+                                    <ColumnDefinition Width="30" />
+                                    <ColumnDefinition Width="4*" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
@@ -123,12 +124,17 @@
                                     <RowDefinition Height="30" />
                                 </Grid.RowDefinitions>
 
+                                <TextBlock Name="RuleOrder"
+                                           Text="{Binding Order}"
+                                           Grid.Column="0"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"></TextBlock>
                                 <TextBlock Name="RuleTextBlock"
                                            Text="{Binding Rule.Name, Converter={StaticResource PascalCaseToRegular}}"
-                                           Grid.Column="0" Style="{StaticResource RuleName}"
+                                           Grid.Column="1" Style="{StaticResource RuleName}"
                                            Foreground="{Binding Path=.,Converter={StaticResource RuleColorConverter}}" />
-                                <Button Content="+"  Grid.Column="1" Click="ActivateButton_Click" Style="{StaticResource SquareButton}" />
-                                <Button Content="-"  Grid.Column="2" Click="DeactivateButton_Click" Style="{StaticResource SquareButton}" />
+                                <Button Content="+"  Grid.Column="2" Click="ActivateButton_Click" Style="{StaticResource SquareButton}" />
+                                <Button Content="-"  Grid.Column="3" Click="DeactivateButton_Click" Style="{StaticResource SquareButton}" />
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>

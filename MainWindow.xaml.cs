@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
 using System.Windows.Automation.Text;
@@ -21,6 +22,28 @@ namespace BatchRename
         {
             InitializeComponent();
             RuleFactory.Instance();
+        }
+
+        private class RuleCounter
+        {
+            private int _counter = 0;
+            private static RuleCounter _instance;
+
+            private RuleCounter()
+            { }
+
+            public static RuleCounter GetInstance()
+            {
+                if (_instance is null)
+                    _instance = new RuleCounter();
+                return _instance;
+            }
+
+            public void Increment() => _counter++;
+
+            internal void Decrement() => _counter--;
+
+            public int GetValue() => _counter;
         }
 
         public class RuleConfig
@@ -47,6 +70,7 @@ namespace BatchRename
         {
             public IRule Rule { get; set; }
             public bool State { get; set; } = false;
+            public int Order { get; set; } = 0;
             public ObservableCollection<RuleConfig> Configs { get; set; } = new();
 
             public event PropertyChangedEventHandler? PropertyChanged;
@@ -61,6 +85,10 @@ namespace BatchRename
             public void Deactivate() => State = RuleStatus.Inactive;
 
             public bool IsActive() => State == RuleStatus.Active;
+
+            public void ChangeOrder(int value) => Order = value;
+
+            public void ReduceOrder() => Order -= 1;
         }
 
         private class ViewModel : INotifyPropertyChanged
@@ -78,13 +106,14 @@ namespace BatchRename
 
         private readonly ViewModel _viewModel = new();
         private int _selectedRuleIndex;
+        private RuleCounter _ruleCounter = RuleCounter.GetInstance();
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             _viewModel.Presets.Add("no presets");
             PresetComboBox.ItemsSource = _viewModel.Presets;
 
-            AlsoActivateCheckBox.IsChecked = true;
+            AlsoActivateActiveRulesCheckBox.IsChecked = true;
 
             _viewModel.RulesInfo = InitDefaultRulesInfo();
             RulesListView.ItemsSource = _viewModel.RulesInfo;
@@ -219,7 +248,7 @@ namespace BatchRename
             foreach (var configLine in configLines)
             {
                 IRule newRule = RuleFactory.CreateWith(configLine);
-                UpdateRule(newRule, AlsoActivateCheckBox.IsChecked);
+                UpdateRule(newRule, AlsoActivateActiveRulesCheckBox.IsChecked);
             }
 
             RefreshRulesListView();
@@ -258,8 +287,11 @@ namespace BatchRename
 
         private void ApplyActiveRules()
         {
+            var activeRulesInfo = _viewModel.RulesInfo.Clone();
+            var sortedAvtiveRulesInfo = new ObservableCollection<RuleInfo>(activeRulesInfo.OrderBy(ruleInfo => ruleInfo.Order));
+
             var converter = (PreviewRenameConverter)FindResource("PreviewRenameConverter");
-            converter.RulesInfo = _viewModel.RulesInfo.Clone();
+            converter.RulesInfo = sortedAvtiveRulesInfo;
 
             RefreshPreviewFilesListView();
         }
@@ -269,10 +301,20 @@ namespace BatchRename
             var senderButton = (Button)sender;
             var currentRule = (RuleInfo)senderButton.DataContext;
 
-            currentRule.Activate();
+            if (currentRule.IsActive() is false)
+            {
+                IncreaseOrder(currentRule);
+                currentRule.Activate();
+            }
 
             RefreshRulesListView();
             ApplyActiveRules();
+        }
+
+        private void IncreaseOrder(RuleInfo currentRule)
+        {
+            _ruleCounter.Increment();
+            currentRule.ChangeOrder(_ruleCounter.GetValue());
         }
 
         private void DeactivateButton_Click(object sender, RoutedEventArgs e)
@@ -280,10 +322,29 @@ namespace BatchRename
             var senderButton = (Button)sender;
             var currentRule = (RuleInfo)senderButton.DataContext;
 
-            currentRule.Deactivate();
+            if (currentRule.IsActive())
+            {
+                DecreaseOrder(currentRule);
+                currentRule.Deactivate();
+            }
 
             RefreshRulesListView();
             ApplyActiveRules();
+        }
+
+        private void DecreaseOrder(RuleInfo currentRule)
+        {
+            _ruleCounter.Decrement();
+
+            foreach (var ruleInfo in _viewModel.RulesInfo)
+            {
+                if (ruleInfo.Order > currentRule.Order)
+                {
+                    ruleInfo.ReduceOrder();
+                }
+            }
+
+            currentRule.ChangeOrder(0);
         }
 
         private void ActivateAllButton_Click(object sender, RoutedEventArgs e)
@@ -461,13 +522,13 @@ namespace BatchRename
             return configLines;
         }
 
-        private void AlsoActivateCheckBox_Checked(object sender, RoutedEventArgs e)
+        private void AlsoActivateActiveRulesCheckBox_Checked(object sender, RoutedEventArgs e)
         {
             LoadSelectedPresets();
             ApplyActiveRules();
         }
 
-        private void AlsoActivateCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        private void AlsoActivateActiveRulesCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
             DeactivateAllRules();
             RefreshRulesListView();
