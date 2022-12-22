@@ -31,6 +31,10 @@
                     Style="{StaticResource RectangularButton}"
                     Margin="20 0 10 0" />
 
+            <Button Name="BrowseFoldersButton"
+                    Content="Browse folders ..." DockPanel.Dock="Top" Click="BrowseFoldersButton_Click"
+                    Style="{StaticResource RectangularButton}" />
+
             <Button Name="BrowsePresetsButton"
                     Content="Load preset ..." DockPanel.Dock="Top" Click="BrowsePresetsButton_Click"
                     Style="{StaticResource RectangularButton}" />

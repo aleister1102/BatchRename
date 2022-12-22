@@ -1,17 +1,14 @@
 ﻿using BatchRenamePlugins;
 using Microsoft.Win32;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
-using System.Windows.Automation.Text;
 using System.Windows.Controls;
 
 namespace BatchRename
@@ -166,19 +163,19 @@ namespace BatchRename
 
         private void BrowseFilesButton_Click(object sender, RoutedEventArgs e)
         {
-            var browsingScreen = new OpenFileDialog { Multiselect = true };
+            var browsingScreen = new CommonOpenFileDialog { Multiselect = true };
 
-            if (browsingScreen.ShowDialog() == true)
+            if (browsingScreen.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                LoadFilesFrom(browsingScreen.FileNames);
+                LoadFilesFrom(browsingScreen.FileNames.ToArray());
 
                 ApplyActiveRules();
             }
         }
 
-        private void LoadFilesFrom(string[] filePaths)
+        private void LoadFilesFrom(string[] filesPaths)
         {
-            foreach (var filePath in filePaths)
+            foreach (var filePath in filesPaths)
             {
                 string fileName = Path.GetFileName(filePath);
 
@@ -186,6 +183,27 @@ namespace BatchRename
                 {
                     _viewModel.Files.Add(new File() { Path = filePath, Name = fileName });
                 }
+            }
+        }
+
+        private void BrowseFoldersButton_Click(object sender, RoutedEventArgs e)
+        {
+            var browsingScreen = new CommonOpenFileDialog { Multiselect = true, IsFolderPicker = true };
+
+            if (browsingScreen.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                LoadFilesFromFolders(browsingScreen.FileNames.ToArray());
+
+                ApplyActiveRules();
+            }
+        }
+
+        private void LoadFilesFromFolders(string[] foldersPath)
+        {
+            foreach (var folderPath in foldersPath)
+            {
+                var filesPath = Directory.GetFiles(folderPath);
+                LoadFilesFrom(filesPath);
             }
         }
 
