@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Navigation;
 
-namespace BatchRename
+namespace BatchRename.converters
 {
     internal class PathToNameConverter : IValueConverter
     {

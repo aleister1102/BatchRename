@@ -5,11 +5,16 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>images\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="images\refresh.png" />
     <None Remove="images\save.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="images\icon.ico" />
   </ItemGroup>
 
   <ItemGroup>

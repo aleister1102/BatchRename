@@ -3,18 +3,18 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:BatchRename"
+        xmlns:converter="clr-namespace:BatchRename.converters"
         mc:Ignorable="d"
-        Title="MainWindow" Height="960" Width="1440"
+        Title="MainWindow" Height="800" Width="1440"
         Loaded="Window_Loaded" WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
-        <local:PathToNameConverter x:Key="PathToNameConverter" />
-        <local:PascalCaseToRegularConverter x:Key="PascalCaseToRegular" />
-        <local:RuleColorConverter x:Key="RuleColorConverter" />
-        <local:PreviewRenameConverter x:Key="PreviewRenameConverter" />
+        <converter:PathToNameConverter x:Key="PathToNameConverter" />
+        <converter:PascalCaseToRegularConverter x:Key="PascalCaseToRegularConverter" />
+        <converter:RuleColorConverter x:Key="RuleColorConverter" />
+        <converter:PreviewRenameConverter x:Key="PreviewRenameConverter" />
     </Window.Resources>
-
+ 
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="560" />
@@ -63,7 +63,7 @@
             </Viewbox>
 
             <Button Name="RenameButton"
-                    Content="Rename" Click="RenameButton_Click"
+                    Content="Apply" Click="RenameButton_Click"
                     Style="{StaticResource RectangularButton}"
                     Margin="15 0 10 0" />
 
@@ -74,14 +74,14 @@
                 <TextBlock TextWrapping="Wrap"
                            FontSize="12"
                            TextAlignment="Center">
-                    Rename and copy to a new folder
+                    Apply and copy to a new folder
                 </TextBlock>
             </Button>
         </StackPanel>
 
         <StackPanel Name="RulePanel" Grid.Row="1" Grid.Column="0">
             <TextBlock Name="SelectedRuleTitle" Style="{StaticResource RuleTitle}"
-                       Text="{Binding Path=Rule.Name, Converter={StaticResource PascalCaseToRegular}}"></TextBlock>
+                       Text="{Binding Path=Rule.Name, Converter={StaticResource PascalCaseToRegularConverter}}"></TextBlock>
 
             <ItemsControl Name="SelectedRuleConfigs"
                           Style="{StaticResource RuleConfigs}">
@@ -145,7 +145,7 @@
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"></TextBlock>
                                 <TextBlock Name="RuleTextBlock"
-                                           Text="{Binding Rule.Name, Converter={StaticResource PascalCaseToRegular}}"
+                                           Text="{Binding Rule.Name, Converter={StaticResource PascalCaseToRegularConverter}}"
                                            Grid.Column="1" Style="{StaticResource RuleName}"
                                            Foreground="{Binding Path=.,Converter={StaticResource RuleColorConverter}}" />
                                 <Button Content="+"  Grid.Column="2" Click="ActivateButton_Click" Style="{StaticResource SquareButton}" />

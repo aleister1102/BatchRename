@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using static BatchRename.MainWindow;
 
-namespace BatchRename
+namespace BatchRename.converters
 {
     internal class RuleColorConverter : IValueConverter
     {

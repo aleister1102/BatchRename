@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 
-namespace BatchRename
+namespace BatchRename.converters
 {
     internal class PascalCaseToRegularConverter : IValueConverter
     {

@@ -1,25 +1,18 @@
-﻿using System.Text.RegularExpressions;
-
-using BatchRenamePlugins;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.AccessControl;
-using System.Security.Cryptography.Xml;
-using System.Security.Principal;
 using System.Text;
-
-using System.Text.RegularExpressions;
-
 using System.Windows;
 using System.Windows.Controls;
+using BaseRule;
+using BatchRename.converters;
+using System.Windows.Documents;
+using System.Reflection;
 
 namespace BatchRename
 {
@@ -180,7 +173,7 @@ namespace BatchRename
             {
                 LoadFilesFrom(browsingScreen.FileNames.ToArray());
 
-                ApplyActiveRules();
+                UpdateActiveRulesForConverters();
             }
         }
 
@@ -205,7 +198,7 @@ namespace BatchRename
             {
                 LoadFilesFromFolders(browsingScreen.FileNames.ToArray());
 
-                ApplyActiveRules();
+                UpdateActiveRulesForConverters();
             }
         }
 
@@ -247,7 +240,7 @@ namespace BatchRename
 
             RestoreSelectedRule();
 
-            ApplyActiveRules();
+            UpdateActiveRulesForConverters();
         }
 
         private void LoadSelectedPresets()
@@ -328,7 +321,7 @@ namespace BatchRename
             }
         }
 
-        private void ApplyActiveRules()
+        private void UpdateActiveRulesForConverters()
         {
             var activeRulesInfo = _viewModel.RulesInfo.Clone();
             var sortedAvtiveRulesInfo = activeRulesInfo.Sort();
@@ -351,7 +344,7 @@ namespace BatchRename
             }
 
             RefreshRulesListView();
-            ApplyActiveRules();
+            UpdateActiveRulesForConverters();
         }
 
         private void IncreaseOrder(RuleInfo currentRule)
@@ -372,7 +365,7 @@ namespace BatchRename
             }
 
             RefreshRulesListView();
-            ApplyActiveRules();
+            UpdateActiveRulesForConverters();
         }
 
         private void DecreaseOrder(RuleInfo currentRule)
@@ -394,20 +387,20 @@ namespace BatchRename
         {
             ActivateAllRules();
             RefreshRulesListView();
-            ApplyActiveRules();
+            UpdateActiveRulesForConverters();
         }
 
         private void DeactivateAllButton_Click(object sender, RoutedEventArgs e)
         {
             DeactivateAllRules();
             RefreshRulesListView();
-            ApplyActiveRules();
+            UpdateActiveRulesForConverters();
         }
 
         private void RefreshPresetsButton_Click(object sender, RoutedEventArgs e)
         {
             LoadSelectedPresets();
-            ApplyActiveRules();
+            UpdateActiveRulesForConverters();
         }
 
         // Reference: https://stackoverflow.com/questions/5662509/drag-and-drop-files-into-wpf
@@ -494,7 +487,7 @@ namespace BatchRename
                 var rule = RuleFactory.CreateWith(configLine);
 
                 UpdateRule(rule);
-                ApplyActiveRules();
+                UpdateActiveRulesForConverters();
             }
         }
 
@@ -568,31 +561,33 @@ namespace BatchRename
         private void AlsoActivateActiveRulesCheckBox_Checked(object sender, RoutedEventArgs e)
         {
             LoadSelectedPresets();
-            ApplyActiveRules();
+            UpdateActiveRulesForConverters();
         }
 
         private void AlsoActivateActiveRulesCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
             DeactivateAllRules();
             RefreshRulesListView();
-            ApplyActiveRules();
+            UpdateActiveRulesForConverters();
         }
 
         private void RenameButton_Click(object sender, RoutedEventArgs e)
         {
-            RenameFilesWithActiveRules(RenameFile);
+            RenameWith(RenameFileAction);
         }
 
-        private void RenameFilesWithActiveRules(Rename renameAction)
+
+        private void RenameWith(RenameAction action)
         {
             var rulesInfo = _viewModel.RulesInfo.Clone();
             var sortedRulesInfo = rulesInfo.Sort();
 
             foreach (var file in _viewModel.Files)
             {
+                string oldPath = file.Path;
                 string filePath = file.Path;
                 string fileName = file.Name;
-                string fileDirectory = ChangeDirectory(filePath);
+                string fileDirectory = ChangeDirectory(file.Path);
 
                 foreach (var ruleInfo in sortedRulesInfo)
                 {
@@ -603,7 +598,8 @@ namespace BatchRename
                     }
                 }
 
-                renameAction.Invoke(file.Path, filePath);
+                action.Invoke(oldPath, filePath);
+
             }
         }
 
@@ -619,13 +615,14 @@ namespace BatchRename
             return newDirectory;
         }
 
-        private delegate void Rename(string currentName, string newName);
+        private delegate void RenameAction(string oldPath, string newPath);
 
-        private void RenameFile(string currentName, string newName)
+        private void RenameFileAction(string oldPath, string newPath)
         {
             try
             {
-                System.IO.File.Move(currentName, newName);
+                newPath = EnumerateDuplicates(newPath);
+                System.IO.File.Move(oldPath, newPath);
             }
             catch (Exception e)
             {
@@ -633,19 +630,33 @@ namespace BatchRename
             }
         }
 
-        private void RenameAndCopyFile(string currentName, string newName)
+        private void RenameAndCopyFileAction(string oldPath, string newPath)
         {
             try
             {
-                if (System.IO.File.Exists(newName) is false)
-                {
-                    System.IO.File.Copy(currentName, newName);
-                }
+                newPath = EnumerateDuplicates(newPath);
+                System.IO.File.Copy(oldPath, newPath);
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
             }
+        }
+
+        private string EnumerateDuplicates(string path)
+        {
+            int index = 1;
+
+            while (System.IO.File.Exists(path))
+            {
+                string directory = Path.GetDirectoryName(path)!;
+                string fileName = Path.GetFileNameWithoutExtension(path);
+                string extension = Path.GetExtension(path);
+                
+                path = Path.Combine(directory, $"{fileName} ({index++}){extension}");
+            }
+
+            return path;
         }
 
         private void RenameAndCopyButton_Click(object sender, RoutedEventArgs e)
@@ -654,7 +665,7 @@ namespace BatchRename
 
             _moveToPath = browsingScreen.ShowDialog() == CommonFileDialogResult.Ok ? browsingScreen.FileName : string.Empty;
 
-            RenameFilesWithActiveRules(RenameAndCopyFile);
+            RenameWith(RenameAndCopyFileAction);
         }
     }
 }
