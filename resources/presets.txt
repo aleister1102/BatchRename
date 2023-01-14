@@ -1,5 +1,5 @@
 ﻿AddCounter:Start=1;Step=1;NumberOfDigits=2;
-AddPrefix:Prefix=In stock;
+AddPrefix:?=In stock;
 AddSuffix:Suffix=Premium;
 ChangeExtension:NewExtension=.md;
 ReplaceSpecialChars:SpecialChars=-_;ReplaceWith= ;

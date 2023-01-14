@@ -1,7 +1,8 @@
-﻿<Application x:Class="BatchRename.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="MainWindow.xaml">
+﻿<Application
+    x:Class="BatchRename.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    StartupUri="MainWindow.xaml">
     <Application.Resources>
         <Style x:Key="RectangularButton">
             <Setter Property="Button.Width" Value="100" />
@@ -11,28 +12,28 @@
         </Style>
 
         <Style x:Key="SquareButton">
-            <Setter Property="Button.Width" Value="30"></Setter>
-            <Setter Property="Button.Height" Value="30"></Setter>
-            <Setter Property="Button.FontSize" Value="12"></Setter>
+            <Setter Property="Button.Width" Value="30" />
+            <Setter Property="Button.Height" Value="30" />
+            <Setter Property="Button.FontSize" Value="12" />
             <Setter Property="Button.Margin" Value="10 0" />
-            <Setter Property="Button.Background" Value="LightGray"></Setter>
-            <Setter Property="Button.VerticalAlignment" Value="Center"></Setter>
-            <Setter Property="Button.HorizontalAlignment" Value="Center"></Setter>
+            <Setter Property="Button.Background" Value="LightGray" />
+            <Setter Property="Button.VerticalAlignment" Value="Center" />
+            <Setter Property="Button.HorizontalAlignment" Value="Center" />
         </Style>
 
         <Style TargetType="Viewbox">
-            <Setter Property="Height" Value="34"></Setter>
-            <Setter Property="Margin" Value="10 0" />
-            <Setter Property="HorizontalAlignment" Value="Left"></Setter>
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Margin" Value="10,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
         </Style>
 
         <Style TargetType="ComboBox">
             <Setter Property="Width" Value="100" />
             <Setter Property="Height" Value="30" />
-            <Setter Property="Margin" Value="20 0" />
+            <Setter Property="Margin" Value="20,0" />
             <Style.Resources>
                 <Style TargetType="TextBlock">
-                    <Setter Property="VerticalAlignment" Value="Center"></Setter>
+                    <Setter Property="VerticalAlignment" Value="Center" />
                 </Style>
             </Style.Resources>
         </Style>
@@ -48,19 +49,19 @@
             <Setter Property="Grid.Height" Value="140" />
             <Style.Resources>
                 <Style TargetType="StackPanel">
-                    <Setter Property="Width" Value="200"></Setter>
+                    <Setter Property="Width" Value="200" />
                 </Style>
                 <Style TargetType="Label">
-                    <Setter Property="FontSize" Value="14"></Setter>
+                    <Setter Property="FontSize" Value="14" />
                 </Style>
                 <Style TargetType="TextBox">
-                    <Setter Property="Width" Value="220"></Setter>
-                    <Setter Property="Height" Value="20"></Setter>
-                    <Setter Property="Margin" Value="0 0 20 0"></Setter>
+                    <Setter Property="Width" Value="220" />
+                    <Setter Property="Height" Value="20" />
+                    <Setter Property="Margin" Value="0,0,20,0" />
                 </Style>
                 <Style TargetType="TextBlock">
                     <Setter Property="Text" Value="Validation message" />
-                    <Setter Property="FontSize" Value="10"></Setter>
+                    <Setter Property="FontSize" Value="10" />
                 </Style>
             </Style.Resources>
         </Style>

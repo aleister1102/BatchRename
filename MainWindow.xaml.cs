@@ -11,8 +11,6 @@ using System.Windows;
 using System.Windows.Controls;
 using BaseRule;
 using BatchRename.converters;
-using System.Windows.Documents;
-using System.Reflection;
 
 namespace BatchRename
 {
@@ -48,18 +46,20 @@ namespace BatchRename
             public void Reset() => _counter = 0;
         }
 
-        public class RuleConfig
+        public class RuleConfig : INotifyPropertyChanged
         {
             public string Name { get; set; } = string.Empty;
             public string Value { get; set; } = string.Empty;
             public string Message { get; set; } = string.Empty;
 
-            public RuleConfig(string name, string value, string message = "Validation message")
+            public RuleConfig(string name, string value, string message = "")
             {
                 Name = name;
                 Value = value;
                 Message = message;
             }
+
+            public event PropertyChangedEventHandler? PropertyChanged;
         }
 
         private class RuleStatus
@@ -91,6 +91,19 @@ namespace BatchRename
             public void ChangeOrder(int value) => Order = value;
 
             public void ReduceOrder() => Order -= 1;
+
+            public bool Validate()
+            {
+                bool result = true;
+
+                foreach (var config in Configs)
+                {
+                    config.Message = Rule.Validate(config.Name, config.Value);
+                    result = result && config.Message == "";
+                }
+
+                return result;
+            }
         }
 
         private class ViewModel : INotifyPropertyChanged
@@ -453,10 +466,10 @@ namespace BatchRename
         {
             var configs = new ObservableCollection<RuleConfig>();
 
-            foreach (var prop in rule.ConfigurableProps)
+            foreach (var propName in rule.ConfigurableProps)
             {
-                var propValue = GetRuleProp(rule, prop);
-                var config = new RuleConfig(prop, propValue);
+                var propValue = GetRuleProp(rule, propName);
+                var config = new RuleConfig(propName, propValue);
 
                 configs.Add(config);
             }
@@ -483,11 +496,14 @@ namespace BatchRename
 
             if (selectedRule is not null)
             {
-                string configLine = GenerateConfigLine(selectedRule);
-                var rule = RuleFactory.CreateWith(configLine);
+                if (selectedRule.Validate())
+                {
+                    string configLine = GenerateConfigLine(selectedRule);
+                    var rule = RuleFactory.CreateWith(configLine);
 
-                UpdateRule(rule);
-                UpdateActiveRulesForConverters();
+                    UpdateRule(rule);
+                    UpdateActiveRulesForConverters();
+                }
             }
         }
 
@@ -576,7 +592,6 @@ namespace BatchRename
             RenameWith(RenameFileAction);
         }
 
-
         private void RenameWith(RenameAction action)
         {
             var rulesInfo = _viewModel.RulesInfo.Clone();
@@ -599,7 +614,6 @@ namespace BatchRename
                 }
 
                 action.Invoke(oldPath, filePath);
-
             }
         }
 
@@ -652,7 +666,7 @@ namespace BatchRename
                 string directory = Path.GetDirectoryName(path)!;
                 string fileName = Path.GetFileNameWithoutExtension(path);
                 string extension = Path.GetExtension(path);
-                
+
                 path = Path.Combine(directory, $"{fileName} ({index++}){extension}");
             }
 
