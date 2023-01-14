@@ -1,8 +1,8 @@
-﻿using System;
+﻿using BaseRule;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using BaseRule;
 
 namespace BatchRename
 {
