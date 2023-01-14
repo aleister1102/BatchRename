@@ -134,6 +134,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
+            <TextBlock Name="RuleMessage" Padding="10,0" />
             <Button
                 Name="SaveConfigsButton"
                 Margin="0,10"

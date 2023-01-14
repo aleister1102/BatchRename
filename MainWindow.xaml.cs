@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using BaseRule;
 using BatchRename.converters;
+using Microsoft.WindowsAPICodePack.Net;
 
 namespace BatchRename
 {
@@ -592,41 +593,81 @@ namespace BatchRename
             RenameWith(RenameFileAction);
         }
 
+        private void RenameAndCopyButton_Click(object sender, RoutedEventArgs e)
+        {
+            var browsingScreen = new CommonOpenFileDialog() { Multiselect = false, IsFolderPicker = true };
+
+            _moveToPath = browsingScreen.ShowDialog() == CommonFileDialogResult.Ok ? browsingScreen.FileName : string.Empty;
+
+            RenameWith(RenameAndCopyFileAction);
+        }
+
         private void RenameWith(RenameAction action)
         {
-            var rulesInfo = _viewModel.RulesInfo.Clone();
-            var sortedRulesInfo = rulesInfo.Sort();
+            List<Tuple<string, string>> renamePairs = MakeRenamePairs();
+
+            bool isValid = Validate(renamePairs);
+
+            if (isValid)
+            {
+                foreach (var renamePair in renamePairs)
+                {
+                    string oldPath = renamePair.Item1;
+                    string newPath = renamePair.Item2;
+                    action.Invoke(oldPath, newPath);
+                }
+            }
+        }
+
+        private List<Tuple<string, string>> MakeRenamePairs()
+        {
+            var sortedRulesInfo = _viewModel.RulesInfo.Clone().Sort();
+            var renamePairs = new List<Tuple<string, string>>();
 
             foreach (var file in _viewModel.Files)
             {
                 string oldPath = file.Path;
-                string filePath = file.Path;
+                string newPath = file.Path;
+
+                string fileDirectory = UpdateDirectory(file);
                 string fileName = file.Name;
-                string fileDirectory = ChangeDirectory(file.Path);
 
                 foreach (var ruleInfo in sortedRulesInfo)
                 {
                     if (ruleInfo.IsActive())
                     {
                         fileName = ruleInfo.Rule.Rename(fileName);
-                        filePath = Path.Combine(fileDirectory, fileName);
+                        newPath = Path.Combine(fileDirectory, fileName);
                     }
                 }
 
-                action.Invoke(oldPath, filePath);
+                renamePairs.Add(new Tuple<string, string>(oldPath, newPath));
             }
+
+            return renamePairs;
         }
 
-        private string ChangeDirectory(string filePath)
+        private bool Validate(List<Tuple<string, string>> renamePairs)
         {
-            string newDirectory = Path.GetDirectoryName(filePath)!;
+            bool result = true;
 
-            if (_moveToPath != string.Empty)
+            foreach (var renamePair in renamePairs)
             {
-                newDirectory = _moveToPath;
+                string newPath = renamePair.Item2;
+
+                if (newPath.Length > 255)
+                {
+                    result = false;
+                    MessageBox.Show("Some of the file name length is greater than 255, please consider to modify your configs.");
+                }
             }
 
-            return newDirectory;
+            return result;
+        }
+
+        private string UpdateDirectory(File file)
+        {
+            return _moveToPath == string.Empty ? Path.GetDirectoryName(file.Path)! : _moveToPath;
         }
 
         private delegate void RenameAction(string oldPath, string newPath);
@@ -635,6 +676,8 @@ namespace BatchRename
         {
             try
             {
+                if (oldPath == newPath) return;
+
                 newPath = EnumerateDuplicates(newPath);
                 System.IO.File.Move(oldPath, newPath);
             }
@@ -648,6 +691,8 @@ namespace BatchRename
         {
             try
             {
+                if (oldPath == newPath) return;
+
                 newPath = EnumerateDuplicates(newPath);
                 System.IO.File.Copy(oldPath, newPath);
             }
@@ -671,15 +716,6 @@ namespace BatchRename
             }
 
             return path;
-        }
-
-        private void RenameAndCopyButton_Click(object sender, RoutedEventArgs e)
-        {
-            var browsingScreen = new CommonOpenFileDialog() { Multiselect = false, IsFolderPicker = true };
-
-            _moveToPath = browsingScreen.ShowDialog() == CommonFileDialogResult.Ok ? browsingScreen.FileName : string.Empty;
-
-            RenameWith(RenameAndCopyFileAction);
         }
     }
 }
