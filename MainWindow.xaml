@@ -78,6 +78,13 @@
                 <Image Source="images/save.png" />
             </Button>
 
+            <Button
+                Name="ClearFilesButton"
+                Click="ClearFilesButton_Click"
+                Style="{StaticResource SquareButton}">
+                <Image Source="images/clear.png" />
+            </Button>
+
             <Viewbox>
                 <CheckBox
                     Name="AlsoActivateActiveRulesCheckBox"
@@ -134,7 +141,6 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <TextBlock Name="RuleMessage" Padding="10,0" />
             <Button
                 Name="SaveConfigsButton"
                 Margin="0,10"

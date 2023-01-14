@@ -9,12 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="images\clear.png" />
     <None Remove="images\refresh.png" />
     <None Remove="images\save.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="images\icon.ico" />
+    <Resource Include="images\icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="images\clear.png" />
     <Resource Include="images\refresh.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>

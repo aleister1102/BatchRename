@@ -658,7 +658,7 @@ namespace BatchRename
                 if (newPath.Length > 255)
                 {
                     result = false;
-                    MessageBox.Show("Some of the file name length is greater than 255, please consider to modify your configs.");
+                    MessageBox.Show("Some of the file name length is greater than 255, please consider to modify your params.");
                 }
             }
 
@@ -716,6 +716,12 @@ namespace BatchRename
             }
 
             return path;
+        }
+
+        private void ClearFilesButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.Files.Clear();
+            RefreshPreviewFilesListView();
         }
     }
 }
