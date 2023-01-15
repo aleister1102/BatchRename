@@ -69,27 +69,31 @@
                     Name="AlsoActivateActiveRulesCheckBox"
                     Checked="AlsoActivateActiveRulesCheckBox_Checked"
                     IsChecked="False"
+                    ToolTip="Also activate preset rules"
                     Unchecked="AlsoActivateActiveRulesCheckBox_Unchecked" />
             </Viewbox>
 
             <Button
                 Name="RefreshPresetsButton"
                 Click="RefreshPresetsButton_Click"
-                Style="{StaticResource SquareButton}">
+                Style="{StaticResource SquareButton}"
+                ToolTip="Refresh presets">
                 <Image Source="images/refresh.png" />
             </Button>
 
             <Button
                 Name="SaveActiveRulesButton"
                 Click="SaveActiveRulesButton_Click"
-                Style="{StaticResource SquareButton}">
+                Style="{StaticResource SquareButton}"
+                ToolTip="Save active rules as presets">
                 <Image Source="images/save.png" />
             </Button>
 
             <Button
                 Name="ClearFilesButton"
                 Click="ClearFilesButton_Click"
-                Style="{StaticResource SquareButton}">
+                Style="{StaticResource SquareButton}"
+                ToolTip="Clear files">
                 <Image Source="images/clear.png" />
             </Button>
 
