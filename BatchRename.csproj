@@ -24,6 +24,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BaseRule\BaseRule.csproj" />
+    <ProjectReference Include="..\BatchRenamePlugins\BatchRenamePlugins.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="BaseRule">
       <HintPath>..\BaseRule\bin\Debug\net6.0-windows\BaseRule.dll</HintPath>
     </Reference>
